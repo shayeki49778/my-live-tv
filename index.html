@@ -2,17 +2,57 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <title>My Live TV App</title>
-    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <title>Pro Sports TV</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; background: #000; text-align: center; }
-        .video-js { width: 100%; height: 100vh; }
+        body { background: #0f172a; color: white; font-family: sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        /* বাম পাশের চ্যানেল লিস্ট */
+        #sidebar { width: 350px; background: #1e293b; overflow-y: auto; padding: 10px; border-right: 2px solid #334155; }
+        .channel-item { display: flex; align-items: center; padding: 10px; cursor: pointer; border-bottom: 1px solid #334155; transition: 0.3s; }
+        .channel-item:hover { background: #38bdf8; color: #000; }
+        .channel-item img { width: 40px; height: 40px; border-radius: 5px; margin-right: 15px; }
+        /* ডান পাশের প্লেয়ার */
+        #main { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        video { width: 100%; max-width: 900px; border-radius: 12px; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
-    <video id="my-video" class="video-js" controls preload="auto">
-        <source src="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8" type="application/x-mpegURL">
-    </video>
-    <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+
+    <div id="sidebar">
+        <h2 style="text-align: center;">স্পোর্টস চ্যানেল</h2>
+        <div id="channelList"></div>
+    </div>
+
+    <div id="main">
+        <video id="video" controls autoplay></video>
+        <h3 id="currentChannel">চ্যানেল সিলেক্ট করুন</h3>
+    </div>
+
+    <script>
+        const channels = [
+            { name: "Star Sports 1", logo: "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/16-by-xfireflix.png", url: "https://cdn8.zohanayaan.com:1686/hls/star1in.m3u8?md5=o9P8WJ_RKHQ8MPqiysji3Q&expires=1780663217" },
+            { name: "T Sports HD", logo: "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4", url: "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=755de1abb34402b6543ac8e82a34488d" },
+            { name: "A Sports HD", logo: "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/12-by-xfireflix.png", url: "https://cdn4.zohanayaan.com:1686/hls/asportshd.m3u8?md5=eqNjW0UhvKm8dyizjo3eFg&expires=1780663218" },
+            { name: "Sky Sports Cricket", logo: "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/9-by-xfireflix.png", url: "https://cdn5.zohanayaan.com:1686/hls/skyscric.m3u8?md5=ZNA-0cz7I96Hpz5QOq64jQ&expires=1780663218" },
+            { name: "DD Sports", logo: "https://s3.aynaott.com/storage/188500190395c4de0e506d518925dcc4", url: "https://cdn-6.pishow.tv/live/13/master.m3u8" }
+        ];
+
+        const listDiv = document.getElementById('channelList');
+        const video = document.getElementById('video');
+        const hls = new Hls();
+
+        channels.forEach(ch => {
+            const div = document.createElement('div');
+            div.className = 'channel-item';
+            div.innerHTML = `<img src="${ch.logo}"> <span>${ch.name}</span>`;
+            div.onclick = () => {
+                document.getElementById('currentChannel').innerText = ch.name;
+                hls.loadSource(ch.url);
+                hls.attachMedia(video);
+                video.play();
+            };
+            listDiv.appendChild(div);
+        });
+    </script>
 </body>
 </html>
