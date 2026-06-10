@@ -1,792 +1,843 @@
-;<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StreamFlix Pro OTT - FIFA Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05070a">
+    <title>Z-Sports — Live Sports & TV</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700;900&display=swap');
-        
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #08090c; 
-            touch-action: manipulation;
-            -webkit-text-size-adjust: 100%;
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+        :root{
+            --bg:#05070a;
+            --surface:#0c1016;
+            --surface-2:#11161f;
+            --line:rgba(255,255,255,.06);
+            --line-2:rgba(255,255,255,.1);
+            --text:#e8ecf2;
+            --muted:#7d8696;
+            --accent:#22c55e;        /* emerald — sports */
+            --accent-2:#16a34a;
+            --hot:#ef4444;           /* live red */
+            --gold:#f5b417;          /* trophy */
         }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .aspect-video-custom { aspect-ratio: 16 / 9; }
-        
-        .glass-card { 
-            background: rgba(25, 28, 36, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.04); 
+        html,body{background:var(--bg);}
+        body{
+            font-family:'Inter',sans-serif;
+            color:var(--text);
+            -webkit-text-size-adjust:100%;
+            touch-action:manipulation;
+            background:
+              radial-gradient(1200px 600px at 50% -10%, rgba(34,197,94,.10), transparent 60%),
+              radial-gradient(800px 400px at 100% 20%, rgba(245,180,23,.05), transparent 60%),
+              var(--bg);
         }
-        
-        .player-glow {
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.15), 0 10px 30px rgba(0,0,0,0.8);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
+        .font-display{font-family:'Sora',sans-serif;letter-spacing:-.01em;}
+        .no-scrollbar::-webkit-scrollbar{display:none;}
+        .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none;}
+        .aspect-video-custom{aspect-ratio:16/9;}
+        .card{background:linear-gradient(180deg,var(--surface) 0%,#090c11 100%);border:1px solid var(--line);}
+        .chip{background:rgba(255,255,255,.04);border:1px solid var(--line);}
+        .accent-bar{background:linear-gradient(180deg,var(--accent),var(--accent-2));}
+        .live-dot{box-shadow:0 0 0 4px rgba(239,68,68,.18);}
+        .player-shell{box-shadow:0 24px 60px -20px rgba(0,0,0,.9),0 0 0 1px rgba(34,197,94,.18);}
+        .tab-active{background:linear-gradient(180deg,#ffffff,#e5e7eb);color:#05070a !important;}
+        .scroll-snap-x{scroll-snap-type:x mandatory;}
+        .snap-start{scroll-snap-align:start;}
+        .ticker{animation:tick 30s linear infinite;}
+        @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .pulse-ring{animation:pr 1.6s ease-out infinite;}
+        @keyframes pr{0%{box-shadow:0 0 0 0 rgba(239,68,68,.55)}80%,100%{box-shadow:0 0 0 12px rgba(239,68,68,0)}}
+        .btn-press{transition:transform .15s ease;}
+        .btn-press:active{transform:scale(.96);}
+        .glow-emerald{box-shadow:0 8px 24px -8px rgba(34,197,94,.55);}
+        .glow-red{box-shadow:0 8px 24px -8px rgba(239,68,68,.55);}
+        .grid-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+        .ad-slot{margin:14px 16px;display:flex;flex-direction:column;align-items:center;}
+        .ad-slot .ad-label{font-size:9px;letter-spacing:.16em;font-weight:700;color:#525c6b;text-transform:uppercase;margin-bottom:6px;}
+        .ad-slot .ad-frame{width:100%;max-width:728px;height:90px;border:1px solid var(--line);border-radius:12px;background:#0a0e14;overflow:auto;-webkit-overflow-scrolling:touch;}
+        .ad-slot iframe{display:block;border:0;}
     </style>
 </head>
-<body class="text-gray-100 antialiased pb-28 selection:bg-red-600 selection:text-white select-none">
+<body class="antialiased pb-28 selection:bg-emerald-500/30 selection:text-white select-none">
 
-    <div class="max-w-md mx-auto min-h-screen bg-[#0b0c10] relative border-x border-white/[0.02]">
-        
-        <div class="bg-gradient-to-r from-purple-950 via-slate-900 to-indigo-950 border-b border-yellow-500/20 px-3 py-1.5 flex items-center justify-between shadow-md sticky top-0 z-50">
-            <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-xs drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]">🏆</span>
-                <div class="truncate">
-                    <span class="text-[9px] font-black text-yellow-400 tracking-wider uppercase block leading-none">FIFA WORLD CUP 2026</span>
-                    <span class="text-[10px] font-bold text-gray-300 tracking-tight leading-none block mt-0.5">Mexico 🆚 South Africa</span>
+<div class="max-w-md mx-auto min-h-screen relative">
+
+    <header class="sticky top-0 z-50 px-4 pt-3 pb-2 backdrop-blur-xl bg-[#05070a]/85 border-b border-white/[0.04]">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center glow-emerald">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 text-black" fill="currentColor"><path d="M12 2 2 7l10 5 10-5-10-5zm0 7L2 14l10 5 10-5-10-5z"/></svg>
+                </div>
+                <div class="leading-tight">
+                    <h1 class="font-display font-extrabold text-[15px] tracking-tight">Z<span class="text-emerald-400">-Sports</span></h1>
+                    <p class="text-[9px] text-gray-500 uppercase tracking-[0.18em] font-semibold">Live Sports · TV · OTT</p>
                 </div>
             </div>
-            <div class="bg-black/40 border border-white/10 px-2 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
-                <span class="w-1 h-1 rounded-full bg-emerald-500 animate-ping"></span>
-                <span id="countdownDisplay" class="text-[9px] font-mono font-bold text-emerald-400 tracking-wider">00d : 00h : 00m : 00s</span>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSearch()" class="w-9 h-9 rounded-xl chip btn-press flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-300"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </button>
+                <button onclick="toggleFifaModal()" class="h-9 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-black btn-press flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-wider">
+                    🏆 FIFA 26
+                </button>
             </div>
         </div>
 
-        <div id="playerSection" class="sticky top-[35px] z-50 bg-black hidden player-glow transition-all duration-300">
-            <div id="videoWrapper" class="relative aspect-video-custom bg-neutral-950 w-full flex items-center justify-center overflow-hidden cursor-pointer" onclick="triggerPlayerControls()">
-                <video id="videoPlayer" class="w-full h-full object-contain" playsinline autoplay></video>
-                
-                <div id="playerCustomControls" class="absolute inset-0 bg-black/50 flex flex-col justify-between p-3 opacity-0 pointer-events-none transition-opacity duration-300 z-10">
-                    <div class="flex items-center justify-between pointer-events-auto">
-                        <span id="overlayTitle" class="text-[11px] font-bold text-white truncate max-w-[70%] drop-shadow-md">Channel</span>
-                        <button onclick="event.stopPropagation(); closePlayer();" class="bg-black/40 text-red-400 p-1.5 rounded-full border border-red-500/30 backdrop-blur-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    
-                    <div class="flex justify-center items-center pointer-events-auto">
-                        <button id="overlayPlayPauseBtn" onclick="event.stopPropagation(); togglePlayPause();" class="bg-red-600 hover:bg-red-500 text-white p-3 rounded-full shadow-lg transform active:scale-90 transition-transform">
-                            <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 hidden"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        </button>
-                    </div>
-                    
-                    <div class="flex items-center justify-between pointer-events-auto">
-                        <div class="flex gap-1.5 bg-black/65 p-0.5 rounded-lg border border-white/10 backdrop-blur-sm">
-                            <button id="overlayS1Btn" onclick="event.stopPropagation(); switchActiveServer(1)" class="px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all bg-red-650 text-white">S1</button>
-                            <button id="overlayS2Btn" onclick="event.stopPropagation(); switchActiveServer(2)" class="px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all text-gray-400">S2</button>
+        <div class="mt-2.5 chip rounded-lg overflow-hidden">
+            <div class="flex items-center gap-2 px-2 py-1.5">
+                <span class="shrink-0 flex items-center gap-1 bg-red-500/15 text-red-400 border border-red-500/30 rounded-md px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-ring"></span> Live
+                </span>
+                <div class="flex-1 overflow-hidden">
+                    <div id="liveTicker" class="ticker whitespace-nowrap text-[11px] font-medium text-gray-300"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="playerSection" class="sticky top-[92px] z-40 px-3 pt-3 hidden">
+        <div class="player-shell rounded-2xl overflow-hidden bg-black">
+            <div id="videoWrapper" class="relative aspect-video-custom bg-black w-full cursor-pointer" onclick="triggerPlayerControls()">
+                <video id="videoPlayer" class="w-full h-full object-contain bg-black" playsinline autoplay></video>
+
+                <div id="playerCustomControls" class="absolute inset-0 flex flex-col justify-between opacity-0 pointer-events-none transition-opacity duration-300 z-10">
+                    <div class="bg-gradient-to-b from-black/80 to-transparent p-3 flex items-center justify-between pointer-events-auto">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="flex items-center gap-1 bg-red-500/20 border border-red-500/40 text-red-300 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span> Live
+                            </span>
+                            <span id="overlayTitle" class="text-[12px] font-semibold text-white truncate max-w-[60vw]">Channel</span>
                         </div>
-                        <button onclick="event.stopPropagation(); toggleRotateFullscreen();" class="bg-black/40 text-gray-200 px-2 py-1 rounded-lg border border-white/10 text-[9px] font-bold flex items-center gap-1 backdrop-blur-sm">
-                            🔄 Rotate
+                        <button onclick="event.stopPropagation();closePlayer()" class="w-8 h-8 rounded-full bg-black/50 border border-white/15 flex items-center justify-center backdrop-blur">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-4 h-4 text-white"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-center pointer-events-auto">
+                        <button id="overlayPlayPauseBtn" onclick="event.stopPropagation();togglePlayPause()" class="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center btn-press">
+                            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white hidden"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-gradient-to-t from-black/80 to-transparent p-3 flex items-center justify-between pointer-events-auto">
+                        <div class="flex gap-1 bg-black/60 rounded-lg p-0.5 border border-white/10">
+                            <button id="overlayS1Btn" onclick="event.stopPropagation();switchActiveServer(1)" class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-black">S1</button>
+                            <button id="overlayS2Btn" onclick="event.stopPropagation();switchActiveServer(2)" class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider text-gray-300">S2</button>
+                        </div>
+                        <button onclick="event.stopPropagation();toggleRotateFullscreen()" class="bg-black/50 border border-white/15 rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-white flex items-center gap-1.5 backdrop-blur">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg>
+                            Full
                         </button>
                     </div>
                 </div>
 
                 <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black/85 backdrop-blur-sm z-20">
                     <div class="relative w-12 h-12">
-                        <div class="absolute inset-0 rounded-full border-4 border-red-500/20"></div>
-                        <div class="absolute inset-0 rounded-full border-4 border-t-red-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+                        <div class="absolute inset-0 rounded-full border-[3px] border-emerald-500/20"></div>
+                        <div class="absolute inset-0 rounded-full border-[3px] border-t-emerald-400 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="p-3 bg-gradient-to-b from-[#13151b] to-[#0c0d12] flex flex-col gap-2 border-t border-white/[0.04]">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div id="playerLogoContainer" class="w-9 h-9 rounded-xl bg-black/40 flex items-center justify-center p-1 border border-white/[0.08] shadow-inner overflow-hidden flex-shrink-0"></div>
-                        <div class="min-w-0">
-                            <h3 id="playerTitle" class="text-xs font-bold truncate tracking-wide text-white">Channel</h3>
-                            <p class="text-[9px] text-red-500 font-semibold flex items-center gap-1 mt-0.5 tracking-wider uppercase">
-                                <span class="h-1.5 w-1.5 rounded-full bg-red-500 inline-block animate-pulse shadow-[0_0_8px_#ef4444]"></span> 
-                                Live (<span id="activeServerLabel">Server 1</span>)
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <button onclick="toggleRotateFullscreen()" class="bg-white/[0.04] active:scale-95 text-gray-300 px-2.5 py-1.5 rounded-lg border border-white/[0.05] flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-400"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75-6.75" /></svg>
-                            <span class="text-[10px] font-medium">Rotate</span>
-                        </button>
-                        
-                        <button onclick="closePlayer()" class="bg-red-500/10 text-red-400 p-2 rounded-lg border border-red-500/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
+            <div class="bg-[#0a0e14] border-t border-white/[0.05] px-3 py-2.5 flex items-center gap-2.5">
+                <div id="playerLogoContainer" class="w-10 h-10 rounded-lg bg-black/40 border border-white/[0.06] flex items-center justify-center overflow-hidden p-1 shrink-0"></div>
+                <div class="min-w-0 flex-1">
+                    <h3 id="playerTitle" class="text-[12px] font-bold text-white truncate">Channel</h3>
+                    <p class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Streaming · <span id="activeServerLabel">Server 1</span>
+                    </p>
                 </div>
-
-                <div id="playerServerSwitcher" class="flex gap-2 pt-1 border-t border-white/[0.02]">
-                    <button id="switchS1Btn" onclick="switchActiveServer(1)" class="flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-red-600 text-white border-red-500 shadow-md shadow-red-600/20">Server 1</button>
-                    <button id="switchS2Btn" onclick="switchActiveServer(2)" class="flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-neutral-800 text-gray-400 border-white/5">Server 2</button>
+                <div class="flex items-center gap-1.5">
+                    <button id="switchS1Btn" onclick="switchActiveServer(1)" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase bg-emerald-500 text-black btn-press">S1</button>
+                    <button id="switchS2Btn" onclick="switchActiveServer(2)" class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase chip text-gray-300 btn-press">S2</button>
                 </div>
             </div>
         </div>
+    </section>
 
-        <header class="flex items-center justify-between px-4 py-3.5 sticky top-[35px] bg-[#0b0c10]/90 backdrop-blur-md z-40 border-b border-white/[0.02]">
-            <div class="flex items-center gap-2">
-                <span class="h-2 w-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500 shadow-[0_0_10px_#ef4444]"></span>
-                <h1 class="text-lg font-black tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400">STREAM<span class="text-red-500">FLIX</span></h1>
-            </div>
-            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-neutral-800 to-neutral-900 border border-white/[0.08] flex items-center justify-center font-bold text-[9px] tracking-wider text-red-500">PRO</div>
-        </header>
+    <nav class="sticky top-[92px] z-30 px-4 pt-3 pb-2 bg-[#05070a]/85 backdrop-blur-xl">
+        <div id="catTabs" class="flex gap-2 overflow-x-auto no-scrollbar text-[11px] font-bold uppercase tracking-wider"></div>
+    </nav>
 
-        <section class="px-4 relative mb-6 pt-2">
-            <div id="featuredHero" class="relative rounded-2xl overflow-hidden aspect-video-custom bg-neutral-900 shadow-[0_8px_25px_rgba(0,0,0,0.5)] transition-all duration-500 cursor-pointer border border-white/[0.04] active:scale-[0.99]">
-                <div id="heroBannerContent" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-950 via-slate-900 to-neutral-950"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-[#0b0c10] via-black/30 to-black/10 flex flex-col justify-end p-4">
-                    <span class="bg-yellow-500 text-black text-[8px] tracking-widest font-black uppercase px-2 py-0.5 rounded w-max mb-1.5 shadow-md flex items-center gap-1">
-                        <span class="w-1 h-1 rounded-full bg-black animate-ping"></span>FEATURED EVENT
-                    </span>
-                    <h2 id="heroTitle" class="text-sm font-bold leading-tight max-w-[90%] text-white drop-shadow-md">Loading Event...</h2>
-                </div>
+    <main class="space-y-7 pt-2" id="mainContent">
+        <section class="px-4" data-cat="sports">
+            <div class="flex items-center justify-between mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 accent-bar rounded-full"></span> Live Matches
+                </h2>
+                <button onclick="toggleFifaModal()" class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">All →</button>
             </div>
+            <div id="matchesRow" class="flex gap-3 overflow-x-auto no-scrollbar scroll-snap-x -mx-4 px-4"></div>
         </section>
 
-        <main class="space-y-6 pb-4">
-            <div>
-                <div class="flex items-center justify-between px-4 mb-3">
-                    <h2 class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-1.5">
-                        <span class="w-1 h-2.5 bg-red-500 rounded-full"></span>
-                        Sports & Live Games
-                    </h2>
-                    <span class="text-[8px] text-gray-600 font-semibold uppercase tracking-wider">Swipe &rarr;</span>
-                </div>
-                <div id="sportsRow" class="flex gap-3 overflow-x-auto no-scrollbar px-4 scroll-smooth"></div>
-            </div>
+        <div class="ad-slot" data-ad-slot data-cat="sports"></div>
 
-            <div>
-                <div class="flex items-center justify-between px-4 mb-3">
-                    <h2 class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-1.5">
-                        <span class="w-1 h-2.5 bg-sky-500 rounded-full"></span>
-                        Bangla Entertainment
-                    </h2>
-                </div>
-                <div id="banglaRow" class="flex gap-3 overflow-x-auto no-scrollbar px-4 scroll-smooth"></div>
+        <section data-cat="sports">
+            <div class="flex items-center justify-between px-4 mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 accent-bar rounded-full"></span> Sports Channels
+                    <span class="text-[10px] text-gray-500 font-medium normal-case tracking-normal" id="sportsCount"></span>
+                </h2>
             </div>
+            <div id="sportsRow" class="grid-cards px-4"></div>
+        </section>
 
-            <div>
-                <div class="flex items-center justify-between px-4 mb-3">
-                    <h2 class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-1.5">
-                        <span class="w-1 h-2.5 bg-amber-500 rounded-full"></span>
-                        News Networks
-                    </h2>
-                </div>
-                <div id="newsRow" class="flex gap-3 overflow-x-auto no-scrollbar px-4 scroll-smooth"></div>
+        <section data-cat="bangla">
+            <div class="flex items-center justify-between px-4 mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 rounded-full bg-sky-400"></span> Bangla Entertainment
+                    <span class="text-[10px] text-gray-500 font-medium normal-case tracking-normal" id="banglaCount"></span>
+                </h2>
             </div>
+            <div id="banglaRow" class="grid-cards px-4"></div>
+        </section>
 
-            <div>
-                <div class="flex items-center justify-between px-4 mb-3">
-                    <h2 class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-1.5">
-                        <span class="w-1 h-2.5 bg-purple-500 rounded-full"></span>
-                        Hindi Movies & Music
-                    </h2>
-                </div>
-                <div id="hindiRow" class="flex gap-3 overflow-x-auto no-scrollbar px-4 scroll-smooth"></div>
+        <section data-cat="news">
+            <div class="flex items-center justify-between px-4 mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 rounded-full bg-amber-400"></span> News Networks
+                    <span class="text-[10px] text-gray-500 font-medium normal-case tracking-normal" id="newsCount"></span>
+                </h2>
             </div>
+            <div id="newsRow" class="grid-cards px-4"></div>
+        </section>
 
-            <div>
-                <div class="flex items-center justify-between px-4 mb-3">
-                    <h2 class="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-400 flex items-center gap-1.5">
-                        <span class="w-1 h-2.5 bg-emerald-500 rounded-full"></span>
-                        Kids Zone & Cartoons
-                    </h2>
-                </div>
-                <div id="kidsRow" class="flex gap-3 overflow-x-auto no-scrollbar px-4 scroll-smooth"></div>
+        <div class="ad-slot" data-ad-slot data-cat="news"></div>
+
+        <section data-cat="hindi">
+            <div class="flex items-center justify-between px-4 mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 rounded-full bg-fuchsia-400"></span> Hindi · Movies & Music
+                    <span class="text-[10px] text-gray-500 font-medium normal-case tracking-normal" id="hindiCount"></span>
+                </h2>
             </div>
-        </main>
+            <div id="hindiRow" class="grid-cards px-4"></div>
+        </section>
 
-        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0e1014]/95 backdrop-blur-xl border-t border-white/[0.04] flex items-center justify-around py-3 z-40 text-[9px] uppercase font-bold tracking-widest shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-            <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center gap-1 text-red-500">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" /></svg>
-                <span>Home</span>
+        <section data-cat="kids">
+            <div class="flex items-center justify-between px-4 mb-2.5">
+                <h2 class="font-display text-[13px] font-extrabold text-white flex items-center gap-2">
+                    <span class="w-1 h-4 rounded-full bg-emerald-300"></span> Kids Zone
+                    <span class="text-[10px] text-gray-500 font-medium normal-case tracking-normal" id="kidsCount"></span>
+                </h2>
+            </div>
+            <div id="kidsRow" class="grid-cards px-4"></div>
+        </section>
+
+        <div class="ad-slot" data-ad-slot data-cat="kids"></div>
+
+    </main>
+
+    <nav class="fixed bottom-3 left-1/2 -translate-x-1/2 w-[92%] max-w-md z-40">
+        <div class="bg-[#0a0e14]/95 backdrop-blur-xl border border-white/[0.06] rounded-2xl px-2 py-2 flex items-center justify-around shadow-[0_10px_40px_rgba(0,0,0,.6)]">
+            <button onclick="scrollToTop()" class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl text-emerald-400">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 3l9 8h-3v9h-4v-6h-4v6H6v-9H3z"/></svg>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Home</span>
             </button>
-            
-            <button onclick="toggleFifaModal()" class="flex flex-col items-center gap-1 text-gray-400 hover:text-yellow-400 transition-colors">
-                <span class="text-sm">🏆</span>
-                <span>FIFA Matches</span>
+            <button onclick="toggleFifaModal()" class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl text-gray-400">
+                <span class="text-base leading-none">🏆</span>
+                <span class="text-[9px] font-bold uppercase tracking-wider">FIFA</span>
             </button>
-
-            <button onclick="toggleTrendingModal()" class="flex flex-col items-center gap-1 text-gray-500 hover:text-yellow-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.25 8.25 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48z" /></svg>
-                <span>Trending</span>
+            <button onclick="toggleTrendingModal()" class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl text-gray-400">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.36 5.21A8.25 8.25 0 1 1 6.04 7.05a8.29 8.29 0 0 0 2.96 2.55 8.98 8.98 0 0 1 3.36-6.87 8.21 8.21 0 0 0 3 2.48z"/></svg>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Trending</span>
             </button>
-        </nav>
-    </div>
-
-    <div id="fifaModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#0f111a] w-full max-w-sm rounded-2xl border border-yellow-500/20 p-4 shadow-2xl transition-all duration-300">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
-                <h3 class="text-xs font-bold tracking-widest text-yellow-400 uppercase flex items-center gap-1.5">🏆 FIFA WC 2026 Matches</h3>
-                <button onclick="toggleFifaModal()" class="text-gray-500 hover:text-white text-xs">&times; Close</button>
-            </div>
-            <div id="fifaMatchListContainer" class="space-y-2.5 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
-        </div>
-    </div>
-
-    <div id="serverModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#12141c] w-full max-w-xs rounded-2xl border border-white/10 p-5 shadow-2xl text-center transform scale-95 transition-all duration-300">
-            <div class="w-12 h-12 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-yellow-500/20 text-xl">⚡</div>
-            <h3 id="modalStreamTitle" class="text-sm font-bold text-white truncate px-1">Select Stream Server</h3>
-            <p class="text-[10px] text-gray-400 mt-1 mb-4">Choose a backup link if one server lags</p>
-            
-            <div class="space-y-2">
-                <button onclick="processServerSelection(1)" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-red-500/20 shadow-lg shadow-red-600/10 active:scale-[0.98] transition-transform">
-                    🚀 Server 1 (Premium HD)
-                </button>
-                <button onclick="processServerSelection(2)" class="w-full bg-[#1e2230] hover:bg-[#252a3d] text-gray-200 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border border-white/5 active:scale-[0.98] transition-transform">
-                    ⚡ Server 2 (High Speed)
-                </button>
-            </div>
-            
-            <button onclick="closeServerModal()" class="mt-4 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-colors">
-                Cancel
+            <button onclick="toggleSearch()" class="flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl text-gray-400">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                <span class="text-[9px] font-bold uppercase tracking-wider">Search</span>
             </button>
         </div>
-    </div>
+    </nav>
+</div>
 
-    <div id="trendingModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
-        <div class="bg-[#0f111a] w-full max-w-sm rounded-2xl border border-red-500/20 p-4 shadow-2xl transition-all duration-300">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
-                <h3 class="text-xs font-bold tracking-widest text-red-500 uppercase flex items-center gap-1">🔥 Top Trending Networks</h3>
-                <button onclick="toggleTrendingModal()" class="text-gray-500 hover:text-white text-xs">&times; Close</button>
+<div id="searchOverlay" class="fixed inset-0 bg-black/85 backdrop-blur-lg z-[110] hidden flex-col p-4">
+    <div class="max-w-md mx-auto w-full">
+        <div class="flex items-center gap-2 mt-2">
+            <div class="flex-1 chip rounded-xl flex items-center gap-2 px-3 py-2.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-gray-400"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                <input id="searchInput" oninput="renderSearch()" placeholder="Search channels, matches…" class="bg-transparent flex-1 outline-none text-sm placeholder-gray-500">
             </div>
-            <div id="trendingList" class="space-y-2 max-h-[60vh] overflow-y-auto no-scrollbar"></div>
+            <button onclick="toggleSearch()" class="text-xs font-bold text-gray-400 px-3 py-2">Cancel</button>
         </div>
+        <div id="searchResults" class="mt-4 space-y-2 max-h-[80vh] overflow-y-auto no-scrollbar"></div>
     </div>
+</div>
 
-    <script>
-        const server1_Default = "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8";
-        const server2_Default = "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=755de1abb34402b6543ac8e82a34488d";
+<div id="fifaModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] hidden items-end sm:items-center justify-center">
+    <div class="bg-[#0a0e14] w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-white/[0.06] p-4 max-h-[85vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-amber-400/15 text-amber-400 flex items-center justify-center">🏆</span>
+                <div>
+                    <h3 class="font-display text-sm font-extrabold">FIFA World Cup 2026</h3>
+                    <p class="text-[10px] text-gray-500">Upcoming & live matches</p>
+                </div>
+            </div>
+            <button onclick="toggleFifaModal()" class="w-8 h-8 rounded-lg chip flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="fifaMatchListContainer" class="space-y-2 overflow-y-auto no-scrollbar"></div>
+    </div>
+</div>
 
-        const appData = {
-            "fifa_matches": [
-                { "id": "m1", "teams": "Mexico vs South Africa", "dateStr": "June 11, 2026 22:00:00", "meta": "Match 1 | Venue: Mexico City Stadium", "server1": server1_Default, "server2": server2_Default },
-                { "id": "m2", "teams": "South Korea vs Czech Republic", "dateStr": "June 11, 2026 23:59:00", "meta": "Match 2 | Venue: Estadio Guadalajara", "server1": server1_Default, "server2": server2_Default },
-                { "id": "m3", "teams": "Canada vs Bosnia", "dateStr": "June 12, 2026 21:00:00", "meta": "Match 3 | Venue: Toronto Stadium", "server1": server1_Default, "server2": server2_Default },
-                { "id": "m4", "teams": "United States vs Paraguay", "dateStr": "June 12, 2026 23:30:00", "meta": "Match 4 | Venue: Los Angeles Stadium", "server1": server1_Default, "server2": server2_Default },
-                { "id": "m5", "teams": "Brazil vs Morocco", "dateStr": "June 13, 2026 20:00:00", "meta": "Match 5 | Venue: New York Stadium", "server1": server1_Default, "server2": server2_Default }
-            ],
-            "live_events": [
-                { "name": "FIFA WC 2026 Live (Server 1 - BTV)", "isCustomLogo": true, "logoType": "btv", "logoText": "FIFA 26", "subText": "SERVER 1", "color": "from-emerald-600 via-green-700 to-teal-900", "url": server1_Default },
-                { "name": "FIFA WC 2026 Live (Server 2 - T Sports)", "isCustomLogo": true, "logoType": "tsports", "logoText": "FIFA 26", "subText": "SERVER 2", "color": "from-amber-500 via-orange-600 to-red-700", "url": server2_Default }
-            ],
-            "sports": [
-                { "name": "FIFA 2026 (Server 1)", "isCustomLogo": true, "logoType": "btv", "logoText": "FIFA 26", "subText": "SERVER 1", "color": "from-emerald-600 via-green-700 to-teal-900", "url": server1_Default },
-                { "name": "FIFA 2026 (Server 2)", "isCustomLogo": true, "logoType": "tsports", "logoText": "FIFA 26", "subText": "SERVER 2", "color": "from-amber-500 via-orange-600 to-red-700", "url": server2_Default },
-                { "name": "T Sports HD", "logo": "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4", "url": "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=755de1abb34402b6543ac8e82a34488d" },
-                { "name": "Sports Legends", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770377900139.png", "url": "https://nomawnoijl.gpcdn.net/akash/sportslegends/playlist.m3u8" },
-                { "name": "Flash Guys HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/177038074527.png", "url": "https://nomawnoijl.gpcdn.net/akash/flashguys/playlist.m3u8" },
-                { "name": "Sports Range", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380601958.png", "url": "https://nomawnoijl.gpcdn.net/akash/sportrange/playlist.m3u8" },
-                { "name": "Thunder Er", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380791303.png", "url": "https://nomawnoijl.gpcdn.net/akash/thunder/playlist.m3u8" },
-                { "name": "Fighters", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380942670.png", "url": "https://nomawnoijl.gpcdn.net/akash/fighter/playlist.m3u8" },
-                { "name": "Crazy Ex", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778085745609.png", "url": "https://nomawnoijl.gpcdn.net/akash/crazy_ex/playlist.m3u8" },
-                { "name": "Star Sports 1", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/16-by-xfireflix.png", "url": "https://cdn8.zohanayaan.com:1686/hls/star1in.m3u8?md5=o9P8WJ_RKHQ8MPqiysji3Q&expires=1780663217" },
-                { "name": "PTV Sports (Server 1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/20-by-xfireflix.png", "url": "https://cdn6.zohanayaan.com:1686/hls/ptvpk.m3u8?md5=ydVLs9QlWy0nEchqNnRlzQ&expires=1780663218" },
-                { "name": "Willow HD (Server 1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/38-by-xfireflix.png", "url": "https://cdn2.zohanayaan.com:1686/hls/willowusa.m3u8?md5=1W5GmrRPEhQOJcVK8KHEKQ&expires=1780663218" },
-                { "name": "Ten Sports", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/10-by-xfireflix.png", "url": "https://cdn10.zohanayaan.com:1686/hls/tenspk.m3u8?md5=6BI_mV-_FZxWDQviUZSf9Q&expires=1780663218" },
-                { "name": "A Sports HD (S1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/12-by-xfireflix.png", "url": "https://cdn4.zohanayaan.com:1686/hls/asportshd.m3u8?md5=eqNjW0UhvKm8dyizjo3eFg&expires=1780663218" },
-                { "name": "Sky Sports Cricket", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/9-by-xfireflix.png", "url": "https://cdn5.zohanayaan.com:1686/hls/skyscric.m3u8?md5=ZNA-0cz7I96Hpz5QOq64jQ&expires=1780663218" },
-                { "name": "Fox Cricket 501 HD", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/6-by-xfireflix.png", "url": "https://cdn9.zohanayaan.com:1686/hls/fox501.m3u8?md5=GIVLwiHMp94XcXUXk8iCJA&expires=1780663222" },
-                { "name": "PTV Sports (Server 2)", "logo": "https://s3.aynaott.com/storage/9d9d7cbfba5a8ceea648bbd963ad1014", "url": "https://tvsen5.aynaott.com/PtvSports/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b714d4f0812496defe4be81125c560aa" },
-                { "name": "A Sports (Server 2)", "logo": "https://s3.aynaott.com/storage/64de30d2df9b2a888cb73f17614a9a8b", "url": "https://tvsen6.aynaott.com/asports/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=79cb2b10ec3a06c91dc483a6f1a04f36" },
-                { "name": "Cricket Gold", "logo": "https://s3.aynaott.com/storage/7d20b575edc4e4b5276faa8c246e72a4", "url": "https://tvsen6.aynaott.com/CricketGold/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c1ffa5e779430e350c5cc5401c9b9bdc" },
-                { "name": "Willow TV (Server 2)", "logo": "https://s3.aynaott.com/storage/94a778ec3219f7eb54bdf1ee07a95788", "url": "https://tvsen5.aynaott.com/willowhd/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=7ff3de9f9a286f0a6df46787e8abd8fb" },
-                { "name": "DD Sports", "logo": "https://s3.aynaott.com/storage/188500190395c4de0e506d518925dcc4", "url": "https://cdn-6.pishow.tv/live/13/master.m3u8" }
-            ],
-            "bangla": [
-                { "name": "BTV National", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778082545894.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8" },
-                { "name": "Deepto TV HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1742713000749.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8" },
-                { "name": "Maasranga TV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1773680325498.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8" },
-                { "name": "NTV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560841094.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1716/output/index.m3u8" },
-                { "name": "Channel i HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1740567626692.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8" },
-                { "name": "Bangla Vision", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735561344354.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1715/output/index.m3u8" },
-                { "name": "RTV HD", "logo": "https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d", "url": "https://tvsen5.aynaott.com/RtvHD/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f7a73bb1fa179c6a6ac4f1bca204fb01" },
-                { "name": "Boishakhi TV", "logo": "https://s3.aynaott.com/storage/58658d4594ca1ff3c5031c9d8e3d9fc0", "url": "https://tvsen6.aynaott.com/boishakhitv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3e12e6fd24d5639ea078401b9f56b6cb" },
-                { "name": "Ekushey TV", "logo": "https://s4.gifyu.com/images/image534fa27d7683f33d.png", "url": "https://ekusheyserver.com/etvlivesn.m3u8" },
-                { "name": "Channel 9 HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770188008067.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1729/output/index.m3u8" },
-                { "name": "ETV Bangla", "logo": "https://s3.aynaott.com/storage/8a1af81802b0728c064c2adabcdc72c8", "url": "https://tvsen6.aynaott.com/etv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9cc33a007f2eb0c67cef45487a090d36" },
-                { "name": "Bangla TV", "logo": "https://s3.aynaott.com/storage/e42ecfa90e3d6b15bdb7fea5ef673864", "url": "https://tvsen6.aynaott.com/banglatv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6ae157dbfcdd0382ea09a531150a301d" },
-                { "name": "Ananda TV", "logo": "https://s3.aynaott.com/storage/897698f593fc07974fc46881a440733d", "url": "https://tvsen6.ayndatv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=266cd7f3ac11015c902e1a047f912b8d" },
-                { "name": "My TV", "logo": "https://s3.aynaott.com/storage/c5b2c623863fbe4033d59d52ff7371ac", "url": "https://tvsen6.aynaott.com/mytv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bd41c6fa96b9160454fe0e51df885a15" },
-                { "name": "Global TV", "logo": "https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44", "url": "https://tvsen6.aynaott.com/globaltvhd/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fd5d513242f7df1450dca1e1bbdff5ec" },
-                { "name": "Bijoy TV", "logo": "https://s3.aynaott.com/storage/f23d6f82c1a16458fe0e4c6f11b8fd87", "url": "https://tvsen6.aynaott.com/bijoytv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3ce64c165e70832dc446d5fe776bb64b"},
-                { "name": "NEXUS TV", "logo": "https://s3.aynaott.com/storage/90635c3edf6e3c8dd92210b7248f1fa0", "url": "https://tvsen6.aynaott.com/nexustv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=5d03a4a1dcabca2fdc5af25b2607827b" },
-                { "name": "Mohona TV", "logo": "https://s3.aynaott.com/storage/73082846fdc15d9f0e7268b104c55d92", "url": "https://tvsen6.aynaott.com/mohonatv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a344557df37b6e128c03649880c0dba5" },
-                { "name": "Green TV", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Green+TV", "url": "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/greentv.stream/live-orgin/greentv.stream/playlist.m3u8" },
-                { "name": "Desh TV", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Desh+TV", "url": "https://bozztv.com/rongo/rongo-DeshTV/index.m3u8" },
-                { "name": "Thikana TV", "logo": "https://s3.aynaott.com/storage/6d1aaa03b84a69992940873fc11af8fc", "url": "https://5dd3981940faa.streamlock.net:443/thikanatv/thikanatv/playlist.m3u8" },
-                { "name": "MUSIC BANGLA", "logo": "https://static.wikia.nocookie.net/logopedia/images/7/75/Music_Bangla_new.jpeg", "url": "http://live.matribhumitv.com/music-bangla/index.m3u8" },
-                { "name": "SRK TV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1746005940155.png", "url": "https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8" }
-            ],
-            "news": [
-                { "name": "Somoy TV (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8" },
-                { "name": "Jamuna TV (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560213832.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8" },
-                { "name": "DBC News HD (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770186306600.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8" },
-                { "name": "Ekattor HD (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1739963327549.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8" },
-                { "name": "Channel 24 HD (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8" },
-                { "name": "ATN News (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1739962961772.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8" },
-                { "name": "News 24 HD (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770186895850.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1708/output/index.m3u8" },
-                { "name": "Al Jazeera (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1777454219313.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1721/output/index.m3u8" },
-                { "name": "Independent TV (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778087037971.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8" },
-                { "name": "BBC News (Server 1)", "logo": "https://seeklogo.com/images/B/bbc-news-logo-8648ABD044-seeklogo.com.png", "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News-avc1_3000000=8-mp4a_208000_eng=2.m3u8" },
-                { "name": "BBC News (Server 2)", "logo": "https://s3.aynaott.com/storage/7a20437e5660324c20cf8251ccb7a697", "url": "https://tvsen6.aynaott.com/bbcnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e4c14c930be5f174e82508058ff13677" },
-                { "name": "Somoy News TV (S2)", "logo": "https://s3.aynaott.com/storage/ece71c1163a377fbe2d93f9d28c34f60", "url": "https://tvsen6.aynaott.com/somoytv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=545fc9867afd3460684757d123babc96" },
-                { "name": "Channel 24 (Server 2)", "logo": "https://s3.aynaott.com/storage/129b0d0a02566999a0c164cd7d506e55", "url": "https://tvsen6.aynaott.com/channel24/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d97354a59739fb3f98c7f7b3a466f888" },
-                { "name": "ATN News (Server 2)", "logo": "https://s3.aynaott.com/storage/8a3c5215dc0b943dc0a80333c0ab21ce", "url": "https://tvsen6.aynaott.com/atnnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9c470762e21eeaab8d3c5080f372bedf" },
-                { "name": "Independent TV (S2)", "logo": "https://s3.aynaott.com/storage/6653326503fcade746d87881d5c99697", "url": "https://tvsen6.aynaott.com/independenttv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bfdca2ae8ef6d2b8f4ae46305d5f92a1" },
-                { "name": "DBC News (Server 2)", "logo": "https://s3.aynaott.com/storage/2c5a73ac3f9772a9cb2d18df1b152545", "url": "https://tvsen6.aynaott.com/dbcnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c78a2ae7cbad2ac8244a453cd6709ddb" },
-                { "name": "Ekhon TV", "logo": "https://s3.aynaott.com/storage/274c30c492e8795c8011d0129113f4bc", "url": "https://tvsen6.aynaott.com/ekhontv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d452d98b7a837a4efbc94834e7bcddba" },
-                { "name": "News 24 BD (Server 2)", "logo": "https://s3.aynaott.com/storage/7c002f22c02096b0d1ba833ae9ea6d5b", "url": "https://tvsen6.aynaott.com/news24/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9810f899fd13485e8756c86b70f7eae8" },
-                { "name": "Ekattor TV (Server 2)", "logo": "https://s3.aynaott.com/storage/d91767995b2f2a54852c92bbbc20daa7", "url": "https://tvsen6.ayattorbdtv/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=10a6c81667d7f8008ea3a3b9e65524eb" },
-                { "name": "Jamuna TV (Server 2)", "logo": "https://s3.aynaott.com/storage/aac6488b68844e5756ab46eb79659de8", "url": "https://tvsen6.aynaott.com/jamunatv/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f12661daba965b46f10112e69107622a" },
-                { "name": "CNN", "logo": "https://s3.aynaott.com/storage/e0b6da4715f468eb39591911a0597546", "url": "https://tvsen6.aynaott.com/cnn/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=850f3c5779e28ea3448387aaee6f7a28" },
-                { "name": "Somoy News (1080p)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://bozztv.com/rongo/rongo-somoy/index.m3u8" }
-            ],
-            "hindi": [
-                { "name": "Music India", "logo": "https://s3.aynaott.com/storage/20c3a2638df99ece9eb12aabfc03a8c3", "url": "https://cdn-2.pishow.tv/live/226/master.m3u8" },
-                { "name": "9x Jalwa", "logo": "https://s3.aynaott.com/storage/d2d8f00a60dc64dad6c0181cd86f7869", "url": "https://tvsen6.aynaott.com/9xjalwa/index.m3u8?e=1780662764&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cf8e4c17c796b85004b00ca4c8cfd5f0" },
-                { "name": "9X Tashan", "logo": "https://s3.aynaott.com/storage/5d052254516639955d06182690d3fda2", "url": "https://tvsen6.aynaott.com/9X_Tashan/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9a69ff96cd25a97aef39f1c3663e7fed" },
-                { "name": "Dhinchaak", "logo": "https://s3.aynaott.com/storage/f4edcca7247bbb4a263a51d7ebb82282", "url": "https://tvsen6.aynaott.com/Dhinchaak/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a541a5a1d88bebb1881b71f43ea74755" },
-                { "name": "Manoranjan TV", "logo": "https://s3.aynaott.com/storage/1a62a70103bac9999411a72b8a8b7ccc", "url": "https://tvsen6.aynaott.com/ManoranjanTV/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=452ee62d3d0e44d3c8266f00778abf93" },
-                { "name": "Network 10", "logo": "https://s3.aynaott.com/storage/09e356a3181cc613cf5680619d50a5f5", "url": "https://tvsen6.aynaott.com/Network10/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f0e4d4376d8f64b6126bc1be85eeae22" },
-                { "name": "Republic TV Bharat", "logo": "https://s3.aynaott.com/storage/947715e0a22f16ac21805073ce6eb0b6", "url": "https://tvsen6.aynaott.com/RepublicTVBharat/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cc6e8c5d4f997d730dcf0694416e7b6b" },
-                { "name": "Green TV HD", "logo": "https://s3.aynaott.com/storage/499219599639007120dc540bdc6e7d9d", "url": "https://tvsen6.aynaott.com/GreenTvHD/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=8ab9c028afb964d9e9ddced81d54619e" },
-                { "name": "Goldmines Bollywood", "is3DLogo": true, "logoText": "GM", "subText": "BOLLY", "color": "from-amber-500 via-amber-600 to-yellow-700", "url": "http://103.175.73.12:8080/live/52/52_0.m3u8" },
-                { "name": "B4U Kadak", "is3DLogo": true, "logoText": "B4U", "subText": "KADAK", "color": "from-red-600 via-orange-600 to-red-800", "url": "https://cdn-2.pishow.tv/live/227/master.m3u8" },
-                { "name": "Zee Anmol TV", "is3DLogo": true, "logoText": "ZEE", "subText": "ANMOL", "color": "from-fuchsia-600 via-pink-600 to-indigo-900", "url": "http://103.175.73.12:8080/live/256/256_0.m3u8" },
-                { "name": "Zee Action", "is3DLogo": true, "logoText": "ZEE", "subText": "ACTION", "color": "from-violet-600 via-indigo-600 to-blue-900", "url": "http://103.175.73.12:8080/live/270/270_0.m3u8" },
-                { "name": "9XM", "is3DLogo": true, "logoText": "9X", "subText": "M", "color": "from-cyan-500 via-blue-500 to-indigo-800", "url": "http://103.175.73.12:8080/live/155/155_0.m3u8" }
-            ],
-            "kids": [
-                { "name": "BuddyStar HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770379038530.png", "url": "https://nomawnoijl.gpcdn.net/akash/buddystar/playlist.m3u8" },
-                { "name": "Joy", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770378874717.png", "url": "https://nomawnoijl.gpcdn.net/akash/joy/playlist.m3u8" },
-                { "name": "Funny Junior HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770379573329.png", "url": "https://nomawnoijl.gpcdn.net/akash/funnyjunior/playlist.m3u8" },
-                { "name": "Smarty", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381107924.png", "url": "https://nomawnoijl.gpcdn.net/akash/smarty/playlist.m3u8" },
-                { "name": "Lucky Family", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381248531.png", "url": "https://nomawnoijl.gpcdn.net/akash/luckyfamily/playlist.m3u8" },
-                { "name": "Kids Stars", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381398090.png", "url": "https://nomawnoijl.gpcdn.net/akash/kidsstars/playlist.m3u8" },
-                { "name": "Nikki", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778083459294.png", "url": "https://nomawnoijl.gpcdn.net/akash/nikky/playlist.m3u8" },
-                { "name": "3ABN Kids", "logo": "https://s3.aynaott.com/storage/76e36f75bf11c815a76c5622d627c814", "url": "https://tvsen6.aynaott.com/3abnkids/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=de9a71459c253f7614454a66d9414ee8" },
-                { "name": "Cartoon Network", "logo": "https://via.placeholder.com/60/000000/ffffff?text=CN", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209624/index.m3u8" },
-                { "name": "PBS Kids", "logo": "https://via.placeholder.com/60/000000/ffffff?text=PBS+Kids", "url": "https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8" },
-                { "name": "Motu Patlu", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Motu+Patlu", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209622/tracks-v1a1/mono.ts.m3u8" },
-                { "name": "Gopal Bhar", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Gopal+Bhar", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209611/tracks-v1a1/mono.ts.m3u8" },
-                { "name": "Doraemon", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Doraemon", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209902/tracks-v1a1/mono.ts.m3u8" }
-            ]
+<div id="serverModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
+    <div class="bg-[#0a0e14] w-full max-w-xs rounded-2xl border border-white/[0.06] p-5 text-center">
+        <div class="w-12 h-12 bg-emerald-500/15 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 text-xl">⚡</div>
+        <h3 id="modalStreamTitle" class="text-sm font-bold text-white truncate px-1">Choose Server</h3>
+        <p class="text-[10px] text-gray-500 mt-1 mb-4">Switch if one stream lags</p>
+        <div class="space-y-2">
+            <button onclick="processServerSelection(1)" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black py-3 rounded-xl text-xs font-bold uppercase tracking-wider btn-press glow-emerald">🚀 Server 1 · HD</button>
+            <button onclick="processServerSelection(2)" class="w-full chip text-gray-100 py-3 rounded-xl text-xs font-bold uppercase tracking-wider btn-press">⚡ Server 2 · Backup</button>
+        </div>
+        <button onclick="closeServerModal()" class="mt-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">Cancel</button>
+    </div>
+</div>
+
+<div id="trendingModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] hidden items-end sm:items-center justify-center">
+    <div class="bg-[#0a0e14] w-full max-w-md rounded-t-3xl sm:rounded-3xl border border-white/[0.06] p-4 max-h-[80vh] overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-3">
+            <h3 class="font-display text-sm font-extrabold flex items-center gap-2">🔥 Trending Now</h3>
+            <button onclick="toggleTrendingModal()" class="w-8 h-8 rounded-lg chip flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="trendingList" class="space-y-2 overflow-y-auto no-scrollbar"></div>
+    </div>
+</div>
+
+<script>
+const server1_Default = "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8";
+const server2_Default = "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=755de1abb34402b6543ac8e82a34488d";
+
+const appData = {
+    "fifa_matches": [
+        { "id": "m1", "teams": "Mexico vs South Africa", "dateStr": "June 11, 2026 22:00:00", "meta": "Match 1 · Mexico City Stadium", "server1": server1_Default, "server2": server2_Default },
+        { "id": "m2", "teams": "South Korea vs Czech Republic", "dateStr": "June 11, 2026 23:59:00", "meta": "Match 2 · Estadio Guadalajara", "server1": server1_Default, "server2": server2_Default },
+        { "id": "m3", "teams": "Canada vs Bosnia", "dateStr": "June 12, 2026 21:00:00", "meta": "Match 3 · Toronto Stadium", "server1": server1_Default, "server2": server2_Default },
+        { "id": "m4", "teams": "United States vs Paraguay", "dateStr": "June 12, 2026 23:30:00", "meta": "Match 4 · Los Angeles Stadium", "server1": server1_Default, "server2": server2_Default },
+        { "id": "m5", "teams": "Brazil vs Morocco", "dateStr": "June 13, 2026 20:00:00", "meta": "Match 5 · New York Stadium", "server1": server1_Default, "server2": server2_Default }
+    ],
+    "sports": [
+        { "name": "FIFA 2026 (Server 1)", "isCustomLogo": true, "logoText": "FIFA 26", "subText": "SERVER 1", "color": "from-emerald-600 via-green-700 to-teal-900", "url": server1_Default },
+        { "name": "FIFA 2026 (Server 2)", "isCustomLogo": true, "logoText": "FIFA 26", "subText": "SERVER 2", "color": "from-amber-500 via-orange-600 to-red-700", "url": server2_Default },
+        { "name": "T Sports HD", "logo": "https://s3.aynaott.com/storage/dbc585f70a60b9855b6e13a8ce4cb6f4", "url": "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=755de1abb34402b6543ac8e82a34488d" },
+        { "name": "Sports Legends", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770377900139.png", "url": "https://nomawnoijl.gpcdn.net/akash/sportslegends/playlist.m3u8" },
+        { "name": "Flash Guys HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/177038074527.png", "url": "https://nomawnoijl.gpcdn.net/akash/flashguys/playlist.m3u8" },
+        { "name": "Sports Range", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380601958.png", "url": "https://nomawnoijl.gpcdn.net/akash/sportrange/playlist.m3u8" },
+        { "name": "Thunder Er", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380791303.png", "url": "https://nomawnoijl.gpcdn.net/akash/thunder/playlist.m3u8" },
+        { "name": "Fighters", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770380942670.png", "url": "https://nomawnoijl.gpcdn.net/akash/fighter/playlist.m3u8" },
+        { "name": "Crazy Ex", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778085745609.png", "url": "https://nomawnoijl.gpcdn.net/akash/crazy_ex/playlist.m3u8" },
+        { "name": "Star Sports 1", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/16-by-xfireflix.png", "url": "https://cdn8.zohanayaan.com:1686/hls/star1in.m3u8?md5=o9P8WJ_RKHQ8MPqiysji3Q&expires=1780663217" },
+        { "name": "PTV Sports (Server 1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/20-by-xfireflix.png", "url": "https://cdn6.zohanayaan.com:1686/hls/ptvpk.m3u8?md5=ydVLs9QlWy0nEchqNnRlzQ&expires=1780663218" },
+        { "name": "Willow HD (Server 1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/38-by-xfireflix.png", "url": "https://cdn2.zohanayaan.com:1686/hls/willowusa.m3u8?md5=1W5GmrRPEhQOJcVK8KHEKQ&expires=1780663218" },
+        { "name": "Ten Sports", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/10-by-xfireflix.png", "url": "https://cdn10.zohanayaan.com:1686/hls/tenspk.m3u8?md5=6BI_mV-_FZxWDQviUZSf9Q&expires=1780663218" },
+        { "name": "A Sports HD (S1)", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/12-by-xfireflix.png", "url": "https://cdn4.zohanayaan.com:1686/hls/asportshd.m3u8?md5=eqNjW0UhvKm8dyizjo3eFg&expires=1780663218" },
+        { "name": "Sky Sports Cricket", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/9-by-xfireflix.png", "url": "https://cdn5.zohanayaan.com:1686/hls/skyscric.m3u8?md5=ZNA-0cz7I96Hpz5QOq64jQ&expires=1780663218" },
+        { "name": "Fox Cricket 501 HD", "logo": "https://abusaeeidx.github.io/Tv-Channel-Logo/CricHD/runded/6-by-xfireflix.png", "url": "https://cdn9.zohanayaan.com:1686/hls/fox501.m3u8?md5=GIVLwiHMp94XcXUXk8iCJA&expires=1780663222" },
+        { "name": "PTV Sports (Server 2)", "logo": "https://s3.aynaott.com/storage/9d9d7cbfba5a8ceea648bbd963ad1014", "url": "https://tvsen5.aynaott.com/PtvSports/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=b714d4f0812496defe4be81125c560aa" },
+        { "name": "A Sports (Server 2)", "logo": "https://s3.aynaott.com/storage/64de30d2df9b2a888cb73f17614a9a8b", "url": "https://tvsen6.aynaott.com/asports/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=79cb2b10ec3a06c91dc483a6f1a04f36" },
+        { "name": "Cricket Gold", "logo": "https://s3.aynaott.com/storage/7d20b575edc4e4b5276faa8c246e72a4", "url": "https://tvsen6.aynaott.com/CricketGold/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c1ffa5e779430e350c5cc5401c9b9bdc" },
+        { "name": "Willow TV (Server 2)", "logo": "https://s3.aynaott.com/storage/94a778ec3219f7eb54bdf1ee07a95788", "url": "https://tvsen5.aynaott.com/willowhd/index.m3u8?e=1780662762&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=7ff3de9f9a286f0a6df46787e8abd8fb" },
+        { "name": "DD Sports", "logo": "https://s3.aynaott.com/storage/188500190395c4de0e506d518925dcc4", "url": "https://cdn-6.pishow.tv/live/13/master.m3u8" }
+    ],
+    "bangla": [
+        { "name": "BTV National", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778082545894.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8" },
+        { "name": "Deepto TV HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1742713000749.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1711/output/index.m3u8" },
+        { "name": "Maasranga TV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1773680325498.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1722/output/index.m3u8" },
+        { "name": "NTV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560841094.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1716/output/index.m3u8" },
+        { "name": "Channel i HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1740567626692.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1723/output/index.m3u8" },
+        { "name": "Bangla Vision", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735561344354.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1715/output/index.m3u8" },
+        { "name": "RTV HD", "logo": "https://s3.aynaott.com/storage/094587a26f2c5e4f2962104728ec8c5d", "url": "https://tvsen5.aynaott.com/RtvHD/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f7a73bb1fa179c6a6ac4f1bca204fb01" },
+        { "name": "Boishakhi TV", "logo": "https://s3.aynaott.com/storage/58658d4594ca1ff3c5031c9d8e3d9fc0", "url": "https://tvsen6.aynaott.com/boishakhitv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3e12e6fd24d5639ea078401b9f56b6cb" },
+        { "name": "Ekushey TV", "logo": "https://s4.gifyu.com/images/image534fa27d7683f33d.png", "url": "https://ekusheyserver.com/etvlivesn.m3u8" },
+        { "name": "Channel 9 HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770188008067.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1729/output/index.m3u8" },
+        { "name": "ETV Bangla", "logo": "https://s3.aynaott.com/storage/8a1af81802b0728c064c2adabcdc72c8", "url": "https://tvsen6.aynaott.com/etv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9cc33a007f2eb0c67cef45487a090d36" },
+        { "name": "Bangla TV", "logo": "https://s3.aynaott.com/storage/e42ecfa90e3d6b15bdb7fea5ef673864", "url": "https://tvsen6.aynaott.com/banglatv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=6ae157dbfcdd0382ea09a531150a301d" },
+        { "name": "Ananda TV", "logo": "https://s3.aynaott.com/storage/897698f593fc07974fc46881a440733d", "url": "https://tvsen6.ayndatv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=266cd7f3ac11015c902e1a047f912b8d" },
+        { "name": "My TV", "logo": "https://s3.aynaott.com/storage/c5b2c623863fbe4033d59d52ff7371ac", "url": "https://tvsen6.aynaott.com/mytv/index.m3u8?e=1780662759&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bd41c6fa96b9160454fe0e51df885a15" },
+        { "name": "Global TV", "logo": "https://s3.aynaott.com/storage/ffd7ba9b76ad555933f94bcb7ff26b44", "url": "https://tvsen6.aynaott.com/globaltvhd/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=fd5d513242f7df1450dca1e1bbdff5ec" },
+        { "name": "Bijoy TV", "logo": "https://s3.aynaott.com/storage/f23d6f82c1a16458fe0e4c6f11b8fd87", "url": "https://tvsen6.aynaott.com/bijoytv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3ce64c165e70832dc446d5fe776bb64b"},
+        { "name": "NEXUS TV", "logo": "https://s3.aynaott.com/storage/90635c3edf6e3c8dd92210b7248f1fa0", "url": "https://tvsen6.aynaott.com/nexustv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=5d03a4a1dcabca2fdc5af25b2607827b" },
+        { "name": "Mohona TV", "logo": "https://s3.aynaott.com/storage/73082846fdc15d9f0e7268b104c55d92", "url": "https://tvsen6.aynaott.com/mohonatv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a344557df37b6e128c03649880c0dba5" },
+        { "name": "Green TV", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Green+TV", "url": "https://app.ncare.live/c3VydmVyX8RpbEU9Mi8xNy8yMDE0GIDU6RgzQ6NTAgdEoaeFzbF92YWxIZTO0U0ezN1IzMyfvcGVMZEJCTEFWeVN3PTOmdFsaWRtaW51aiPhnPTI2/greentv.stream/live-orgin/greentv.stream/playlist.m3u8" },
+        { "name": "Desh TV", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Desh+TV", "url": "https://bozztv.com/rongo/rongo-DeshTV/index.m3u8" },
+        { "name": "Thikana TV", "logo": "https://s3.aynaott.com/storage/6d1aaa03b84a69992940873fc11af8fc", "url": "https://5dd3981940faa.streamlock.net:443/thikanatv/thikanatv/playlist.m3u8" },
+        { "name": "MUSIC BANGLA", "logo": "https://static.wikia.nocookie.net/logopedia/images/7/75/Music_Bangla_new.jpeg", "url": "http://live.matribhumitv.com/music-bangla/index.m3u8" },
+        { "name": "SRK TV", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1746005940155.png", "url": "https://srknowapp.ncare.live/srktvhlswodrm/srktv.stream/playlist.m3u8" }
+    ],
+    "news": [
+        { "name": "Somoy TV (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8" },
+        { "name": "Jamuna TV (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560213832.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1701/output/index.m3u8" },
+        { "name": "DBC News HD (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770186306600.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1728/output/index.m3u8" },
+        { "name": "Ekattor HD (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1739963327549.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8" },
+        { "name": "Channel 24 HD (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8" },
+        { "name": "ATN News (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1739962961772.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1706/output/index.m3u8" },
+        { "name": "News 24 HD (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770186895850.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1708/output/index.m3u8" },
+        { "name": "Al Jazeera (Server 1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1777454219313.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1721/output/index.m3u8" },
+        { "name": "Independent TV (S1)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778087037971.png", "url": "https://owrcovcrpy.gpcdn.net/bpk-tv/1704/output/index.m3u8" },
+        { "name": "BBC News (Server 1)", "logo": "https://seeklogo.com/images/B/bbc-news-logo-8648ABD044-seeklogo.com.png", "url": "https://cdn4.skygo.mn/live/disk1/BBC_News/HLSv3-FTA/BBC_News-avc1_3000000=8-mp4a_208000_eng=2.m3u8" },
+        { "name": "BBC News (Server 2)", "logo": "https://s3.aynaott.com/storage/7a20437e5660324c20cf8251ccb7a697", "url": "https://tvsen6.aynaott.com/bbcnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=e4c14c930be5f174e82508058ff13677" },
+        { "name": "Somoy News TV (S2)", "logo": "https://s3.aynaott.com/storage/ece71c1163a377fbe2d93f9d28c34f60", "url": "https://tvsen6.aynaott.com/somoytv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=545fc9867afd3460684757d123babc96" },
+        { "name": "Channel 24 (Server 2)", "logo": "https://s3.aynaott.com/storage/129b0d0a02566999a0c164cd7d506e55", "url": "https://tvsen6.aynaott.com/channel24/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d97354a59739fb3f98c7f7b3a466f888" },
+        { "name": "ATN News (Server 2)", "logo": "https://s3.aynaott.com/storage/8a3c5215dc0b943dc0a80333c0ab21ce", "url": "https://tvsen6.aynaott.com/atnnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9c470762e21eeaab8d3c5080f372bedf" },
+        { "name": "Independent TV (S2)", "logo": "https://s3.aynaott.com/storage/6653326503fcade746d87881d5c99697", "url": "https://tvsen6.aynaott.com/independenttv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=bfdca2ae8ef6d2b8f4ae46305d5f92a1" },
+        { "name": "DBC News (Server 2)", "logo": "https://s3.aynaott.com/storage/2c5a73ac3f9772a9cb2d18df1b152545", "url": "https://tvsen6.aynaott.com/dbcnews/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=c78a2ae7cbad2ac8244a453cd6709ddb" },
+        { "name": "Ekhon TV", "logo": "https://s3.aynaott.com/storage/274c30c492e8795c8011d0129113f4bc", "url": "https://tvsen6.aynaott.com/ekhontv/index.m3u8?e=1780662760&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=d452d98b7a837a4efbc94834e7bcddba" },
+        { "name": "News 24 BD (Server 2)", "logo": "https://s3.aynaott.com/storage/7c002f22c02096b0d1ba833ae9ea6d5b", "url": "https://tvsen6.aynaott.com/news24/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9810f899fd13485e8756c86b70f7eae8" },
+        { "name": "Ekattor TV (Server 2)", "logo": "https://s3.aynaott.com/storage/d91767995b2f2a54852c92bbbc20daa7", "url": "https://tvsen6.ayattorbdtv/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=10a6c81667d7f8008ea3a3b9e65524eb" },
+        { "name": "Jamuna TV (Server 2)", "logo": "https://s3.aynaott.com/storage/aac6488b68844e5756ab46eb79659de8", "url": "https://tvsen6.aynaott.com/jamunatv/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f12661daba965b46f10112e69107622a" },
+        { "name": "CNN", "logo": "https://s3.aynaott.com/storage/e0b6da4715f468eb39591911a0597546", "url": "https://tvsen6.aynaott.com/cnn/index.m3u8?e=1780662761&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=850f3c5779e28ea3448387aaee6f7a28" },
+        { "name": "Somoy News (1080p)", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1735560559088.png", "url": "https://bozztv.com/rongo/rongo-somoy/index.m3u8" }
+    ],
+    "hindi": [
+        { "name": "Music India", "logo": "https://s3.aynaott.com/storage/20c3a2638df99ece9eb12aabfc03a8c3", "url": "https://cdn-2.pishow.tv/live/226/master.m3u8" },
+        { "name": "9x Jalwa", "logo": "https://s3.aynaott.com/storage/d2d8f00a60dc64dad6c0181cd86f7869", "url": "https://tvsen6.aynaott.com/9xjalwa/index.m3u8?e=1780662764&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cf8e4c17c796b85004b00ca4c8cfd5f0" },
+        { "name": "9X Tashan", "logo": "https://s3.aynaott.com/storage/5d052254516639955d06182690d3fda2", "url": "https://tvsen6.aynaott.com/9X_Tashan/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=9a69ff96cd25a97aef39f1c3663e7fed" },
+        { "name": "Dhinchaak", "logo": "https://s3.aynaott.com/storage/f4edcca7247bbb4a263a51d7ebb82282", "url": "https://tvsen6.aynaott.com/Dhinchaak/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=a541a5a1d88bebb1881b71f43ea74755" },
+        { "name": "Manoranjan TV", "logo": "https://s3.aynaott.com/storage/1a62a70103bac9999411a72b8a8b7ccc", "url": "https://tvsen6.aynaott.com/ManoranjanTV/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=452ee62d3d0e44d3c8266f00778abf93" },
+        { "name": "Network 10", "logo": "https://s3.aynaott.com/storage/09e356a3181cc613cf5680619d50a5f5", "url": "https://tvsen6.aynaott.com/Network10/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=f0e4d4376d8f64b6126bc1be85eeae22" },
+        { "name": "Republic TV Bharat", "logo": "https://s3.aynaott.com/storage/947715e0a22f16ac21805073ce6eb0b6", "url": "https://tvsen6.aynaott.com/RepublicTVBharat/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cc6e8c5d4f997d730dcf0694416e7b6b" },
+        { "name": "Green TV HD", "logo": "https://s3.aynaott.com/storage/499219599639007120dc540bdc6e7d9d", "url": "https://tvsen6.aynaott.com/GreenTvHD/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=8ab9c028afb964d9e9ddced81d54619e" },
+        { "name": "Goldmines Bollywood", "is3DLogo": true, "logoText": "GM", "subText": "BOLLY", "color": "from-amber-500 via-amber-600 to-yellow-700", "url": "http://103.175.73.12:8080/live/52/52_0.m3u8" },
+        { "name": "B4U Kadak", "is3DLogo": true, "logoText": "B4U", "subText": "KADAK", "color": "from-red-600 via-orange-600 to-red-800", "url": "https://cdn-2.pishow.tv/live/227/master.m3u8" },
+        { "name": "Zee Anmol TV", "is3DLogo": true, "logoText": "ZEE", "subText": "ANMOL", "color": "from-fuchsia-600 via-pink-600 to-indigo-900", "url": "http://103.175.73.12:8080/live/256/256_0.m3u8" },
+        { "name": "Zee Action", "is3DLogo": true, "logoText": "ZEE", "subText": "ACTION", "color": "from-violet-600 via-indigo-600 to-blue-900", "url": "http://103.175.73.12:8080/live/270/270_0.m3u8" },
+        { "name": "9XM", "is3DLogo": true, "logoText": "9X", "subText": "M", "color": "from-cyan-500 via-blue-500 to-indigo-800", "url": "http://103.175.73.12:8080/live/155/155_0.m3u8" }
+    ],
+    "kids": [
+        { "name": "BuddyStar HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770379038530.png", "url": "https://nomawnoijl.gpcdn.net/akash/buddystar/playlist.m3u8" },
+        { "name": "Joy", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770378874717.png", "url": "https://nomawnoijl.gpcdn.net/akash/joy/playlist.m3u8" },
+        { "name": "Funny Junior HD", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770379573329.png", "url": "https://nomawnoijl.gpcdn.net/akash/funnyjunior/playlist.m3u8" },
+        { "name": "Smarty", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381107924.png", "url": "https://nomawnoijl.gpcdn.net/akash/smarty/playlist.m3u8" },
+        { "name": "Lucky Family", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381248531.png", "url": "https://nomawnoijl.gpcdn.net/akash/luckyfamily/playlist.m3u8" },
+        { "name": "Kids Stars", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1770381398090.png", "url": "https://nomawnoijl.gpcdn.net/akash/kidsstars/playlist.m3u8" },
+        { "name": "Nikki", "logo": "https://tstatic.akash-go.com/cms-ui/images/custom-content/1778083459294.png", "url": "https://nomawnoijl.gpcdn.net/akash/nikky/playlist.m3u8" },
+        { "name": "3ABN Kids", "logo": "https://s3.aynaott.com/storage/76e36f75bf11c815a76c5622d627c814", "url": "https://tvsen6.aynaott.com/3abnkids/index.m3u8?e=1780662765&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=de9a71459c253f7614454a66d9414ee8" },
+        { "name": "Cartoon Network", "logo": "https://via.placeholder.com/60/000000/ffffff?text=CN", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209624/index.m3u8" },
+        { "name": "PBS Kids", "logo": "https://via.placeholder.com/60/000000/ffffff?text=PBS+Kids", "url": "https://2-fss-2.streamhoster.com/pl_140/amlst:200914-1298290/playlist.m3u8" },
+        { "name": "Motu Patlu", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Motu+Patlu", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209622/tracks-v1a1/mono.ts.m3u8" },
+        { "name": "Gopal Bhar", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Gopal+Bhar", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209611/tracks-v1a1/mono.ts.m3u8" },
+        { "name": "Doraemon", "logo": "https://via.placeholder.com/60/000000/ffffff?text=Doraemon", "url": "https://live20.bozztv.com/giatvplayout7/giatv-209902/tracks-v1a1/mono.ts.m3u8" }
+    ]
+};
+
+const CATS = [
+    { id:"all", label:"All" },
+    { id:"sports", label:"Sports" },
+    { id:"bangla", label:"Bangla" },
+    { id:"news", label:"News" },
+    { id:"hindi", label:"Hindi" },
+    { id:"kids", label:"Kids" },
+];
+
+let hlsInstance = null;
+let activeStreamPayload = { name: "", s1: "", s2: "", channelObj: null };
+let controlsTimeout = null;
+let activeCat = "all";
+
+document.addEventListener("DOMContentLoaded", () => {
+    initTabs();
+    initTicker();
+    renderFifaMatchList();
+    renderMatchesRow();
+    renderCategoryRow(appData.sports, "sportsRow", "sportsCount");
+    renderCategoryRow(appData.bangla, "banglaRow", "banglaCount");
+    renderCategoryRow(appData.news,   "newsRow",   "newsCount");
+    renderCategoryRow(appData.hindi,  "hindiRow",  "hindiCount");
+    renderCategoryRow(appData.kids,   "kidsRow",   "kidsCount");
+
+    injectAds();
+    setInterval(updateFifaTimers, 1000);
+
+    // অটোমেটিকভাবে প্রথম স্পোর্টস চ্যানেল প্লে করা
+    const firstChannel = appData.sports[0];
+    if (firstChannel) {
+        executeCoreStream(firstChannel.url, firstChannel.name, firstChannel, 1);
+    }
+});
+
+function injectAds(){
+    const adHtml = `<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;padding:0;background:#0a0e14;display:flex;align-items:center;justify-content:center;min-height:90px;}</style>
+</head><body>
+<script type="text/javascript">
+  atOptions = { 'key':'9d8dfda9f8073ee147724cea19b6f87f','format':'iframe','height':90,'width':728,'params':{} };
+<\/script>
+<script type="text/javascript" src="https://www.highperformanceformat.com/9d8dfda9f8073ee147724cea19b6f87f/invoke.js"><\/script>
+</body></html>`;
+    document.querySelectorAll('[data-ad-slot]').forEach(slot => {
+        slot.innerHTML = `<span class="ad-label">Advertisement</span>
+            <div class="ad-frame"><iframe sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+                style="width:728px;height:90px;" srcdoc='${adHtml.replace(/'/g, "&#39;")}'></iframe></div>`;
+    });
+}
+
+function initTabs(){
+    const el = document.getElementById("catTabs");
+    el.innerHTML = CATS.map(c => `
+        <button data-cat="${c.id}" onclick="setCat('${c.id}')"
+            class="px-3.5 py-1.5 rounded-full whitespace-nowrap chip ${c.id===activeCat?'tab-active':'text-gray-300'}">
+            ${c.label}
+        </button>`).join("");
+}
+
+function setCat(id){
+    activeCat = id;
+    // Update Tab Colors
+    document.querySelectorAll('#catTabs button').forEach(b=>{
+        const on = b.dataset.cat===id;
+        b.className = `px-3.5 py-1.5 rounded-full whitespace-nowrap chip ${on?'tab-active':'text-gray-300'}`;
+    });
+    
+    // Properly hide non-relevant sections AND ads
+    document.querySelectorAll('main > section, main > div.ad-slot').forEach(s => {
+        const catList = s.dataset.cat ? s.dataset.cat.split(',') : [];
+        s.style.display = (id === 'all' || catList.includes(id)) ? '' : 'none';
+    });
+}
+
+function initTicker(){
+    const items = [
+        ...appData.fifa_matches.slice(0,5).map(m=>`⚽ ${m.teams}`),
+        "🏆 FIFA World Cup 2026 — Live Coverage",
+        "📺 200+ live channels in HD",
+        "🔥 Multi-server backup streams",
+    ];
+    const text = items.join("   •   ");
+    document.getElementById("liveTicker").innerHTML = `<span>${text}</span><span class="pl-8">${text}</span>`;
+}
+
+function generate3DLogo(mainText, subText, gradientColor) {
+    return `
+        <div class="w-full h-full bg-gradient-to-br ${gradientColor} rounded-lg flex flex-col items-center justify-center p-1 border border-white/10 shadow-[inset_0_1px_3px_rgba(255,255,255,0.25),0_4px_8px_rgba(0,0,0,0.5)] overflow-hidden">
+            <span class="text-[11px] font-black text-white uppercase tracking-tight drop-shadow leading-none">${mainText}</span>
+            <span class="text-[7px] font-bold text-yellow-200 tracking-widest mt-0.5 bg-black/40 px-1 py-0.5 rounded scale-90 border border-white/10">${subText}</span>
+        </div>`;
+}
+
+function toggleFifaModal() {
+    const m = document.getElementById("fifaModal");
+    m.classList.toggle("hidden");
+    m.classList.toggle("flex");
+}
+
+function renderFifaMatchList() {
+    const container = document.getElementById("fifaMatchListContainer");
+    container.innerHTML = "";
+    appData.fifa_matches.forEach(match => {
+        const row = document.createElement("button");
+        row.className = "w-full text-left card p-3 rounded-xl flex items-center justify-between gap-3 btn-press hover:border-emerald-500/40";
+        row.innerHTML = `
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <h4 class="text-[12px] font-bold text-gray-100 truncate">${match.teams}</h4>
+                </div>
+                <p class="text-[10px] text-gray-500 truncate">${match.meta}</p>
+            </div>
+            <div class="text-right flex-shrink-0 bg-black/40 border border-white/5 px-2.5 py-1.5 rounded-lg">
+                <span class="text-[8px] uppercase tracking-wider font-bold text-gray-500 block leading-none mb-0.5">Kickoff</span>
+                <span id="timer-${match.id}" class="text-[11px] font-mono font-bold text-emerald-300">--</span>
+            </div>`;
+        row.onclick = () => {
+            toggleFifaModal();
+            openServerModal(match.teams, match.server1, match.server2, { isCustomLogo:true, logoText:"FIFA", subText:"2026", color:"from-emerald-600 via-green-700 to-teal-900" });
         };
+        container.appendChild(row);
+    });
+    updateFifaTimers();
+}
 
-        let hlsInstance = null;
-        let currentHeroIndex = 0;
-        let activeStreamPayload = { name: "", s1: "", s2: "", channelObj: null };
-        let controlsTimeout = null;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            initGlobalCountdown();
-            updateFeaturedHero();
-            renderFifaMatchList();
-            renderCategoryRow(appData.sports, "sportsRow");
-            renderCategoryRow(appData.bangla, "banglaRow");
-            renderCategoryRow(appData.news, "newsRow");
-            renderCategoryRow(appData.hindi, "hindiRow");
-            renderCategoryRow(appData.kids, "kidsRow");
-            
-            setInterval(rotateHero, 6000);
-            setInterval(updateFifaTimers, 1000);
-
-            // অটোমেটিক প্রথম টিভি চ্যানেল লোড করার ট্রিগার
-            if(appData.sports && appData.sports.length > 0) {
-                const firstChan = appData.sports[0];
-                executeCoreStream(firstChan.url, firstChan.name, firstChan, 1);
-            }
-        });
-
-        function initGlobalCountdown() {
-            const targetDate = new Date(appData.fifa_matches[0].dateStr).getTime();
-            function updateTimer() {
-                const now = new Date().getTime();
-                const diff = targetDate - now;
-                if (diff <= 0) {
-                    document.getElementById("countdownDisplay").textContent = "MATCH LIVE NOW";
-                    return;
-                }
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                document.getElementById("countdownDisplay").textContent = 
-                    `${days.toString().padStart(2,'0')}d : ${hours.toString().padStart(2,'0')}h : ${minutes.toString().padStart(2,'0')}m : ${seconds.toString().padStart(2,'0')}s`;
-            }
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        }
-
-        function generate3DLogo(mainText, subText, gradientColor) {
-            return `
-                <div class="w-full h-full bg-gradient-to-br ${gradientColor} rounded-xl flex flex-col items-center justify-center p-1 border border-white/10 shadow-[inset_0_1px_3px_rgba(255,255,255,0.3),_0_4px_8px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                    <span class="text-[11px] font-black text-white uppercase tracking-tight drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.8)] leading-none">${mainText}</span>
-                    <span class="text-[7px] font-bold text-yellow-300 tracking-widest mt-0.5 bg-black/40 px-1 py-0.5 rounded scale-90 border border-white/[0.05]">${subText}</span>
+function renderMatchesRow(){
+    const el = document.getElementById("matchesRow");
+    el.innerHTML = "";
+    appData.fifa_matches.forEach(match=>{
+        const card = document.createElement("button");
+        card.className = "snap-start min-w-[78%] card rounded-2xl p-3.5 text-left btn-press relative overflow-hidden";
+        card.innerHTML = `
+            <div class="absolute inset-0 opacity-40 pointer-events-none" style="background:radial-gradient(120% 80% at 100% 0%, rgba(34,197,94,.25), transparent 60%)"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded px-1.5 py-0.5">FIFA WC 26</span>
+                    <span class="text-[9px] font-mono text-emerald-300" id="card-timer-${match.id}">--</span>
                 </div>
-            `;
+                <h3 class="font-display text-[14px] font-extrabold text-white leading-tight">${match.teams}</h3>
+                <p class="text-[10px] text-gray-400 mt-1 truncate">${match.meta}</p>
+                <div class="mt-3 flex items-center gap-2">
+                    <span class="bg-emerald-500 text-black text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1">▶ Watch</span>
+                    <span class="chip text-[10px] text-gray-300 px-2 py-1 rounded-md">2 Servers</span>
+                </div>
+            </div>`;
+        card.onclick = () => openServerModal(match.teams, match.server1, match.server2, { isCustomLogo:true, logoText:"FIFA", subText:"2026", color:"from-emerald-600 via-green-700 to-teal-900" });
+        el.appendChild(card);
+    });
+}
+
+function updateFifaTimers() {
+    appData.fifa_matches.forEach(match => {
+        const a = document.getElementById(`timer-${match.id}`);
+        const b = document.getElementById(`card-timer-${match.id}`);
+        const diff = new Date(match.dateStr).getTime() - Date.now();
+        let shortText, longText;
+        if (diff <= 0) {
+            shortText = "LIVE"; longText = "● LIVE NOW";
+        } else {
+            const d = Math.floor(diff/86400000),
+                  h = Math.floor(diff%86400000/3600000),
+                  m = Math.floor(diff%3600000/60000),
+                  s = Math.floor(diff%60000/1000);
+            shortText = d>0 ? `${d}d ${h}h` : `${h}h ${m}m`;
+            longText  = d>0
+                ? `Starts in ${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m`
+                : `Starts in ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         }
+        if(a) a.textContent = shortText;
+        if(b) b.textContent = longText;
+    });
+}
 
-        function toggleFifaModal() {
-            const modal = document.getElementById("fifaModal");
-            if (modal.classList.contains("hidden")) {
-                modal.classList.remove("hidden");
-                modal.classList.add("flex");
-            } else {
-                modal.classList.add("hidden");
-                modal.classList.remove("flex");
-            }
+function renderCategoryRow(channels, elementId, countId) {
+    const container = document.getElementById(elementId);
+    container.innerHTML = "";
+    if(countId) document.getElementById(countId).textContent = `· ${channels.length}`;
+    channels.forEach(channel => {
+        const card = document.createElement("button");
+        card.className = "card rounded-xl p-2.5 flex flex-col items-center text-center btn-press hover:border-emerald-500/30 transition-colors";
+        let logo;
+        if (channel.isCustomLogo || channel.is3DLogo) {
+            logo = `<div class="w-14 h-14 mb-2">${generate3DLogo(channel.logoText, channel.subText, channel.color)}</div>`;
+        } else {
+            const src = channel.logo || "https://via.placeholder.com/60/000000/ffffff?text=TV";
+            logo = `<div class="w-14 h-14 rounded-xl bg-black/40 border border-white/[0.05] flex items-center justify-center p-1.5 mb-2 overflow-hidden">
+                        <img src="${src}" alt="${channel.name}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/60/000000/ffffff?text=TV'">
+                    </div>`;
         }
+        card.innerHTML = `${logo}
+            <span class="text-[10px] font-semibold text-gray-200 truncate w-full leading-tight">${channel.name}</span>
+            <span class="mt-1 text-[8px] uppercase tracking-wider text-emerald-400 font-bold">● Live</span>`;
+        card.onclick = () => executeCoreStream(channel.url, channel.name, channel, 1);
+        container.appendChild(card);
+    });
+}
 
-        function renderFifaMatchList() {
-            const container = document.getElementById("fifaMatchListContainer");
-            container.innerHTML = "";
+function openServerModal(name, s1Url, s2Url, channelObj) {
+    activeStreamPayload = { name, s1: s1Url, s2: s2Url, channelObj };
+    document.getElementById("modalStreamTitle").textContent = name;
+    const m = document.getElementById("serverModal");
+    m.classList.remove("hidden"); m.classList.add("flex");
+}
 
-            appData.fifa_matches.forEach(match => {
-                const row = document.createElement("div");
-                row.className = "glass-card p-3 rounded-xl flex items-center justify-between gap-3 border border-white/[0.02] hover:border-yellow-500/30 active:scale-[0.99] transition-all cursor-pointer w-full text-left";
-                
-                row.innerHTML = `
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
-                            <h4 class="text-xs font-bold text-gray-200 truncate tracking-wide">${match.teams}</h4>
-                        </div>
-                        <p class="text-[10px] text-gray-500 truncate">${match.meta}</p>
-                    </div>
-                    <div class="text-right flex-shrink-0 bg-black/30 border border-white/5 px-2.5 py-1 rounded-lg">
-                        <span class="text-[8px] uppercase tracking-wider font-bold text-gray-500 block leading-none mb-0.5">Kickoff In</span>
-                        <span id="timer-${match.id}" class="text-[10px] font-mono font-bold text-yellow-400 tracking-tight">Calculating...</span>
-                    </div>
-                `;
-                
-                row.onclick = () => {
-                    toggleFifaModal();
-                    openServerModal(match.teams, match.server1, match.server2, { isCustomLogo: true, logoText: "FIFA", subText: "2026", color: "from-purple-600 via-indigo-700 to-slate-900" });
-                };
-                container.appendChild(row);
-            });
-            updateFifaTimers();
-        }
+function closeServerModal() { const m=document.getElementById("serverModal"); m.classList.add("hidden"); m.classList.remove("flex"); }
 
-        function updateFifaTimers() {
-            appData.fifa_matches.forEach(match => {
-                const displayEl = document.getElementById(`timer-${match.id}`);
-                if (!displayEl) return;
+function processServerSelection(n) { closeServerModal(); const u=(n===1)?activeStreamPayload.s1:activeStreamPayload.s2; executeCoreStream(u, activeStreamPayload.name, activeStreamPayload.channelObj, n); }
 
-                const diff = new Date(match.dateStr).getTime() - new Date().getTime();
-                if (diff <= 0) {
-                    displayEl.textContent = "LIVE NOW";
-                    displayEl.className = "text-[10px] font-bold text-emerald-400 animate-pulse";
-                    return;
-                }
+function setServerButtons(n){
+    const s1=document.getElementById("switchS1Btn"), s2=document.getElementById("switchS2Btn");
+    const o1=document.getElementById("overlayS1Btn"), o2=document.getElementById("overlayS2Btn");
+    const on = "px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase bg-emerald-500 text-black btn-press";
+    const off= "px-2.5 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase chip text-gray-300 btn-press";
+    const onO = "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-black";
+    const offO= "px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider text-gray-300";
+    if(s1 && s2) { s1.className = n===1?on:off; s2.className = n===2?on:off; }
+    if(o1 && o2) { o1.className = n===1?onO:offO; o2.className = n===2?onO:offO; }
+}
 
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                
-                if (d > 0) {
-                    displayEl.textContent = `${d}d ${h}h`;
-                } else {
-                    displayEl.textContent = `${h}h ${m}m`;
-                }
-            });
-        }
+function switchActiveServer(n) {
+    setServerButtons(n);
+    executeCoreStream(n===1?activeStreamPayload.s1:activeStreamPayload.s2, activeStreamPayload.name, activeStreamPayload.channelObj, n);
+}
 
-        function renderCategoryRow(channels, elementId) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = "";
+function executeCoreStream(url, name, channelObj, serverNum) {
+    if(!activeStreamPayload.name || activeStreamPayload.name !== name){
+        activeStreamPayload = { name, s1: url, s2: url, channelObj };
+    }
+    const playerSection = document.getElementById("playerSection");
+    const video = document.getElementById("videoPlayer");
+    const loader = document.getElementById("playerLoader");
+    const logoContainer = document.getElementById("playerLogoContainer");
 
-            channels.forEach(channel => {
-                const card = document.createElement("div");
-                if (channel.isCustomLogo) {
-                    card.className = "min-w-[110px] max-w-[110px] bg-gradient-to-b from-slate-900 to-neutral-950 p-3 rounded-2xl border border-white/5 flex flex-col items-center justify-between text-center transition-all duration-300 active:scale-95 cursor-pointer shadow-lg group";
-                } else {
-                    card.className = "min-w-[105px] max-w-[105px] glass-card p-3 rounded-2xl flex flex-col items-center justify-between text-center transition-all duration-300 active:scale-95 cursor-pointer shadow-md group";
-                }
+    document.getElementById("playerTitle").textContent = name;
+    document.getElementById("overlayTitle").textContent = name;
+    document.getElementById("activeServerLabel").textContent = `Server ${serverNum}`;
+    setServerButtons(serverNum);
 
-                let logoMark = "";
-                if (channel.isCustomLogo || channel.is3DLogo) {
-                    logoMark = generate3DLogo(channel.logoText, channel.subText, channel.color);
-                } else {
-                    const logoSrc = channel.logo ? channel.logo : "https://via.placeholder.com/60/000000/ffffff?text=TV";
-                    logoMark = `
-                        <div class="w-12 h-12 bg-black/30 rounded-xl flex items-center justify-center p-1 overflow-hidden mb-2.5 border border-white/[0.03]">
-                            <img src="${logoSrc}" alt="${channel.name}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/60/000000/ffffff?text=TV'">
-                        </div>
-                    `;
-                }
+    if (channelObj && (channelObj.isCustomLogo || channelObj.is3DLogo)) {
+        logoContainer.innerHTML = generate3DLogo(channelObj.logoText, channelObj.subText, channelObj.color);
+    } else {
+        logoContainer.innerHTML = `<img src="${(channelObj && channelObj.logo) ? channelObj.logo : 'https://via.placeholder.com/40/000000/ffffff?text=TV'}" class="w-full h-full object-contain">`;
+    }
 
-                card.innerHTML = `
-                    ${(channel.isCustomLogo || channel.is3DLogo) ? `<div class="w-12 h-12 mb-2.5">${logoMark}</div>` : logoMark}
-                    <span class="text-[10px] font-semibold tracking-wide text-gray-400 group-hover:text-white truncate w-full px-0.5">${channel.name}</span>
-                `;
+    playerSection.classList.remove("hidden");
+    loader.classList.remove("hidden");
 
-                // সাধারণ চ্যানেল সরাসরি প্লে হবে (সার্ভার মডাল ছাড়া)
-                card.onclick = () => {
-                    executeCoreStream(channel.url, channel.name, channel, 1);
-                };
-                container.appendChild(card);
-            });
-        }
+    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
 
-        function updateFeaturedHero() {
-            const currentItem = appData.live_events[currentHeroIndex];
-            const heroBanner = document.getElementById("heroBannerContent");
-            
-            if (currentItem.isCustomLogo) {
-                heroBanner.innerHTML = `
-                    <div class="flex flex-col items-center justify-center scale-105 transform">
-                        <span class="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-300 to-red-500 drop-shadow-[0_4px_10px_rgba(239,68,68,0.3)] tracking-tighter">FIFA 2026</span>
-                        <span class="text-[9px] font-bold bg-white/10 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full border border-white/10 mt-1 tracking-[0.15em] uppercase">${currentItem.subText}</span>
-                    </div>
-                `;
-            } else {
-                heroBanner.innerHTML = `<img src="${currentItem.logo}" alt="${currentItem.name}" class="w-full h-full object-contain p-6 opacity-90">`;
-            }
-            
-            document.getElementById("heroTitle").textContent = currentItem.name;
-            // ব্যানার যেহেতু ফিফা ইভেন্ট নির্দেশ করে, তাই এখানে সার্ভার মডাল ওপেন হবে।
-            document.getElementById("featuredHero").onclick = () => openServerModal(currentItem.name, server1_Default, server2_Default, currentItem);
-        }
-
-        function rotateHero() {
-            currentHeroIndex = (currentHeroIndex + 1) % appData.live_events.length;
-            updateFeaturedHero();
-        }
-
-        function openServerModal(name, s1Url, s2Url, channelObj) {
-            activeStreamPayload = { name: name, s1: s1Url, s2: s2Url, channelObj: channelObj };
-            document.getElementById("modalStreamTitle").textContent = name;
-            
-            const modal = document.getElementById("serverModal");
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-        }
-
-        function closeServerModal() {
-            document.getElementById("serverModal").classList.add("hidden");
-            document.getElementById("serverModal").classList.remove("flex");
-        }
-
-        function processServerSelection(serverNum) {
-            closeServerModal();
-            const urlToPlay = (serverNum === 1) ? activeStreamPayload.s1 : activeStreamPayload.s2;
-            executeCoreStream(urlToPlay, activeStreamPayload.name, activeStreamPayload.channelObj, serverNum);
-        }
-
-        function switchActiveServer(serverNum) {
-            const s1Btn = document.getElementById("switchS1Btn");
-            const s2Btn = document.getElementById("switchS2Btn");
-            const overlayS1 = document.getElementById("overlayS1Btn");
-            const overlayS2 = document.getElementById("overlayS2Btn");
-            
-            if (serverNum === 1) {
-                s1Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-red-600 text-white border-red-500 shadow-md shadow-red-600/20";
-                s2Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-neutral-800 text-gray-400 border-white/5";
-                
-                overlayS1.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all bg-red-600 text-white";
-                overlayS2.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all text-gray-400";
-                
-                executeCoreStream(activeStreamPayload.s1, activeStreamPayload.name, activeStreamPayload.channelObj, 1);
-            } else {
-                s2Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-red-600 text-white border-red-500 shadow-md shadow-red-600/20";
-                s1Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-neutral-800 text-gray-400 border-white/5";
-                
-                overlayS2.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all bg-red-600 text-white";
-                overlayS1.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all text-gray-400";
-                
-                executeCoreStream(activeStreamPayload.s2, activeStreamPayload.name, activeStreamPayload.channelObj, 2);
-            }
-        }
-
-        function executeCoreStream(url, name, channelObj, serverNum) {
-            // প্লেয়ারে রানিং করার পূর্বে ব্যাকআপ পেলোড সেট করে রাখা যাতে সার্ভার চুজ করতে সমস্যা না হয়।
-            if(!activeStreamPayload.name || activeStreamPayload.name !== name){
-                activeStreamPayload = { name: name, s1: url, s2: url, channelObj: channelObj };
-            }
-
-            const playerSection = document.getElementById("playerSection");
-            const video = document.getElementById("videoPlayer");
-            const loader = document.getElementById("playerLoader");
-            const logoContainer = document.getElementById("playerLogoContainer");
-            
-            document.getElementById("playerTitle").textContent = name;
-            document.getElementById("overlayTitle").textContent = name;
-            document.getElementById("activeServerLabel").textContent = `Server ${serverNum}`;
-            
-            const s1Btn = document.getElementById("switchS1Btn");
-            const s2Btn = document.getElementById("switchS2Btn");
-            const overlayS1 = document.getElementById("overlayS1Btn");
-            const overlayS2 = document.getElementById("overlayS2Btn");
-
-            if (serverNum === 1) {
-                s1Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-red-600 text-white border-red-500 shadow-md shadow-red-600/20";
-                s2Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-neutral-800 text-gray-400 border-white/5";
-                overlayS1.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all bg-red-600 text-white";
-                overlayS2.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all text-gray-400";
-            } else {
-                s2Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-red-600 text-white border-red-500 shadow-md shadow-red-600/20";
-                s1Btn.className = "flex-1 py-1 px-2 rounded-md text-[9px] font-bold tracking-wider uppercase transition-all border bg-neutral-800 text-gray-400 border-white/5";
-                overlayS2.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all bg-red-600 text-white";
-                overlayS1.className = "px-2 py-0.5 rounded text-[8px] font-black uppercase transition-all text-gray-400";
-            }
-
-            if (channelObj && (channelObj.isCustomLogo || channelObj.is3DLogo)) {
-                logoContainer.innerHTML = generate3DLogo(channelObj.logoText, channelObj.subText, channelObj.color);
-            } else {
-                logoContainer.innerHTML = `<img src="${(channelObj && channelObj.logo) ? channelObj.logo : 'https://via.placeholder.com/40/000000/ffffff?text=TV'}" class="w-full h-full object-contain">`;
-            }
-            
-            playerSection.classList.remove("hidden");
-            loader.classList.remove("hidden");
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            if (hlsInstance) {
-                hlsInstance.destroy();
-                hlsInstance = null;
-            }
-
-            if (Hls.isSupported()) {
-                hlsInstance = new Hls({ maxBufferLength: 20, stableBufferDelay: 2, lowLatencyMode: true });
-                hlsInstance.loadSource(url);
-                hlsInstance.attachMedia(video);
-                
-                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(() => {});
-                    loader.classList.add("hidden");
-                    updateOverlayIcons();
-                    triggerPlayerControls(); // প্লে হওয়া মাত্র ওভারলে কন্ট্রোল ১ বার দেখাবে
-                });
-
-                hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hlsInstance.startLoad();
-                        else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hlsInstance.recoverMediaError();
-                        else closePlayer();
-                    }
-                });
-            } 
-            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = url;
-                video.addEventListener('loadedmetadata', () => {
-                    video.play();
-                    loader.classList.add("hidden");
-                    updateOverlayIcons();
-                    triggerPlayerControls();
-                });
-            }
-        }
-
-        // 🌟 OTT Touch Overlay Mechanism (টাচ করলে অপশন ভেসে ওঠার লজিক)
-        function triggerPlayerControls() {
-            const overlay = document.getElementById("playerCustomControls");
-            overlay.classList.remove("opacity-0", "pointer-events-none");
-            overlay.classList.add("opacity-100", "pointer-events-auto");
-            
-            clearTimeout(controlsTimeout);
-            controlsTimeout = setTimeout(() => {
-                overlay.classList.remove("opacity-100", "pointer-events-auto");
-                overlay.classList.add("opacity-0", "pointer-events-none");
-            }, 3000); // ৩ সেকেন্ড পর হাইড হবে
-        }
-
-        function togglePlayPause() {
-            const video = document.getElementById("videoPlayer");
-            if (video.paused) {
-                video.play();
-            } else {
+    if (Hls.isSupported()) {
+        hlsInstance = new Hls({
+            maxBufferLength: 25,        
+            maxMaxBufferLength: 45,     
+            stableBufferDelay: 3,       
+            lowLatencyMode: true,       
+            enableWorker: true,         
+            abrEwmaFastLive: 1.0,       
+            abrEwmaSlowLive: 5.0,       
+            progressive: true
+        });
+        hlsInstance.loadSource(url);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(()=>{
+                // ব্রাউজার অটোপ্লে ব্লক করলে ভিডিও পজড থাকবে, যাতে ইউজার নিজে 'Play' বাটনে ক্লিক করে আনমিউটেড অবস্থায় দেখতে পারেন
                 video.pause();
-            }
+                updateOverlayIcons();
+            });
+            loader.classList.add("hidden");
             updateOverlayIcons();
             triggerPlayerControls();
-        }
-
-        function updateOverlayIcons() {
-            const video = document.getElementById("videoPlayer");
-            const playIcon = document.getElementById("playIcon");
-            const pauseIcon = document.getElementById("pauseIcon");
-            if (video.paused) {
-                playIcon.classList.remove("hidden");
-                pauseIcon.classList.add("hidden");
-            } else {
-                playIcon.classList.add("hidden");
-                pauseIcon.classList.remove("hidden");
-            }
-        }
-
-        function toggleRotateFullscreen() {
-            const videoWrapper = document.getElementById("videoWrapper");
-            if (videoWrapper.requestFullscreen) videoWrapper.requestFullscreen();
-            else if (videoWrapper.webkitRequestFullscreen) videoWrapper.webkitRequestFullscreen();
-
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
-            }
-        }
-
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement && screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
+        });
+        hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hlsInstance.startLoad();
+                else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hlsInstance.recoverMediaError();
+                else closePlayer();
             }
         });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        // addEventListener এর পরিবর্তে onloadedmetadata ব্যবহার করা হয়েছে মেমরি লিক এড়াতে
+        video.onloadedmetadata = () => { 
+            video.play().catch(()=>{
+                video.pause();
+                updateOverlayIcons();
+            }); 
+            loader.classList.add("hidden"); 
+            updateOverlayIcons(); 
+            triggerPlayerControls(); 
+        };
+    }
+}
 
-        function closePlayer() {
-            const playerSection = document.getElementById("playerSection");
-            const video = document.getElementById("videoPlayer");
-            
-            playerSection.classList.add("hidden");
-            video.pause();
-            video.src = "";
+function triggerPlayerControls() {
+    const overlay = document.getElementById("playerCustomControls");
+    overlay.classList.remove("opacity-0","pointer-events-none");
+    overlay.classList.add("opacity-100","pointer-events-auto");
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(() => {
+        overlay.classList.remove("opacity-100","pointer-events-auto");
+        overlay.classList.add("opacity-0","pointer-events-none");
+    }, 3000);
+}
 
-            if (hlsInstance) {
-                hlsInstance.destroy();
-                hlsInstance = null;
-            }
-            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-        }
+function togglePlayPause() {
+    const v = document.getElementById("videoPlayer");
+    if (v.paused) v.play(); else v.pause();
+    updateOverlayIcons(); triggerPlayerControls();
+}
 
-        function toggleTrendingModal() {
-            const modal = document.getElementById("trendingModal");
-            const listContainer = document.getElementById("trendingList");
-            
-            if (modal.classList.contains("hidden")) {
-                listContainer.innerHTML = "";
-                
-                const trendItems = [
-                    { name: "Mexico vs South Africa (FIFA WC)", type: "LIVE MATCH", s1: server1_Default, s2: server2_Default },
-                    { name: "Brazil vs Morocco (FIFA WC)", type: "POPULAR MATCH", s1: server1_Default, s2: server2_Default },
-                    { name: "T Sports HD", type: "SPORTS NET", s1: appData.sports[2].url, s2: appData.sports[2].url },
-                    { name: "Somoy TV HD", type: "NEWS NETWORK", s1: appData.news[0].url, s2: appData.news[0].url },
-                    { name: "BTV National", type: "BANGLA TV", s1: appData.bangla[0].url, s2: appData.bangla[0].url }
-                ];
+function updateOverlayIcons() {
+    const v = document.getElementById("videoPlayer");
+    const p = document.getElementById("playIcon"), pa = document.getElementById("pauseIcon");
+    if (v.paused) { p.classList.remove("hidden"); pa.classList.add("hidden"); }
+    else { p.classList.add("hidden"); pa.classList.remove("hidden"); }
+}
 
-                trendItems.forEach((item, idx) => {
-                    const row = document.createElement("div");
-                    row.className = "flex items-center justify-between p-2.5 bg-white/[0.03] border border-white/5 rounded-xl hover:border-red-500/30 transition-all cursor-pointer";
-                    row.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black text-red-500">#0${idx+1}</span>
-                            <div>
-                                <h4 class="text-xs font-bold text-gray-200">${item.name}</h4>
-                                <span class="text-[8px] bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.2 rounded font-mono font-bold uppercase mt-0.5 inline-block">${item.type}</span>
-                            </div>
-                        </div>
-                        <span class="text-xs">▶</span>
-                    `;
-                    row.onclick = () => {
-                        modal.classList.add("hidden");
-                        openServerModal(item.name, item.s1, item.s2, { isCustomLogo: true, logoText: "HOT", subText: "TREND", color: "from-red-600 via-orange-600 to-yellow-600" });
-                    };
-                    listContainer.appendChild(row);
-                });
+function toggleRotateFullscreen() {
+    const w = document.getElementById("videoWrapper");
+    if (w.requestFullscreen) w.requestFullscreen();
+    else if (w.webkitRequestFullscreen) w.webkitRequestFullscreen();
+    if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+}
 
-                modal.classList.remove("hidden");
-                modal.classList.add("flex");
-            } else {
-                modal.classList.add("hidden");
-                modal.classList.remove("flex");
-            }
-        }
-    </script>
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement && screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+});
+
+function closePlayer() {
+    const playerSection = document.getElementById("playerSection");
+    const video = document.getElementById("videoPlayer");
+    playerSection.classList.add("hidden");
+    video.pause(); video.src = "";
+    if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+    if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+}
+
+function toggleTrendingModal() {
+    const modal = document.getElementById("trendingModal");
+    const list = document.getElementById("trendingList");
+    if (modal.classList.contains("hidden")) {
+        list.innerHTML = "";
+        const trendItems = [
+            { name: "Mexico vs South Africa (FIFA WC)", type: "LIVE MATCH", s1: server1_Default, s2: server2_Default },
+            { name: "Brazil vs Morocco (FIFA WC)", type: "POPULAR MATCH", s1: server1_Default, s2: server2_Default },
+            { name: "T Sports HD", type: "SPORTS", s1: appData.sports[2].url, s2: appData.sports[2].url },
+            { name: "Somoy TV HD", type: "NEWS", s1: appData.news[0].url, s2: appData.news[0].url },
+            { name: "BTV National", type: "BANGLA", s1: appData.bangla[0].url, s2: appData.bangla[0].url }
+        ];
+        trendItems.forEach((item, idx) => {
+            const row = document.createElement("button");
+            row.className = "w-full flex items-center justify-between p-3 card rounded-xl btn-press";
+            row.innerHTML = `
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-base font-display font-black text-emerald-400 w-6 text-center">${String(idx+1).padStart(2,'0')}</span>
+                    <div class="min-w-0 text-left">
+                        <h4 class="text-[12px] font-bold text-gray-100 truncate">${item.name}</h4>
+                        <span class="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded font-bold uppercase mt-0.5 inline-block">${item.type}</span>
+                    </div>
+                </div>
+                <span class="text-emerald-400">▶</span>`;
+            row.onclick = () => { modal.classList.add("hidden"); openServerModal(item.name, item.s1, item.s2, { isCustomLogo:true, logoText:"HOT", subText:"TREND", color:"from-red-600 via-orange-600 to-yellow-600" }); };
+            list.appendChild(row);
+        });
+        modal.classList.remove("hidden"); modal.classList.add("flex");
+    } else { modal.classList.add("hidden"); modal.classList.remove("flex"); }
+}
+
+function scrollToTop(){ window.scrollTo({ top:0, behavior:'smooth' }); }
+
+// SEARCH
+function toggleSearch(){
+    const el = document.getElementById("searchOverlay");
+    const hidden = el.classList.contains("hidden");
+    el.classList.toggle("hidden");
+    el.classList.toggle("flex");
+    if(hidden){ setTimeout(()=>document.getElementById("searchInput").focus(),50); renderSearch(); }
+}
+
+function allChannels(){
+    return [
+        ...appData.sports.map(c=>({...c,cat:"Sports"})),
+        ...appData.bangla.map(c=>({...c,cat:"Bangla"})),
+        ...appData.news.map(c=>({...c,cat:"News"})),
+        ...appData.hindi.map(c=>({...c,cat:"Hindi"})),
+        ...appData.kids.map(c=>({...c,cat:"Kids"})),
+    ];
+}
+
+function renderSearch(){
+    const q = (document.getElementById("searchInput").value||"").trim().toLowerCase();
+    const list = document.getElementById("searchResults");
+    const all = allChannels();
+    const filtered = q ? all.filter(c=>c.name.toLowerCase().includes(q)) : all.slice(0,30);
+    list.innerHTML = filtered.map((c,i)=>`
+        <button data-i="${i}" class="search-row w-full flex items-center gap-3 p-2.5 card rounded-xl btn-press text-left">
+            <div class="w-10 h-10 rounded-lg bg-black/40 border border-white/[0.05] flex items-center justify-center overflow-hidden p-1 shrink-0">
+                ${c.isCustomLogo||c.is3DLogo?generate3DLogo(c.logoText,c.subText,c.color):`<img src="${c.logo||''}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/60/000000/ffffff?text=TV'">`}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="text-[12px] font-bold text-gray-100 truncate">${c.name}</div>
+                <div class="text-[10px] text-gray-500">${c.cat}</div>
+            </div>
+            <span class="text-emerald-400">▶</span>
+        </button>`).join("") || `<div class="text-center text-gray-500 text-sm py-8">No channels found</div>`;
+    list.querySelectorAll('.search-row').forEach(btn=>{
+        btn.onclick = ()=>{ const c = filtered[parseInt(btn.dataset.i)]; toggleSearch(); executeCoreStream(c.url, c.name, c, 1); };
+    });
+}
+</script>
 </body>
 </html>
