@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FalconCast Premium IPTV</title>
-    <!-- Tailwind CSS CDN for modern responsive design -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- HLS.js for streaming m3u8 streams smoothly -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         body {
@@ -23,10 +20,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        .active-pill {
-            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
-            border-color: #3b82f6;
-        }
         .card-bg {
             background-color: #121e31;
             border: 1px solid #1e2d42;
@@ -35,137 +28,38 @@
 </head>
 <body class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20">
 
-    <!-- 1. VIDEO PLAYER CONTAINER (At the Top) -->
     <div class="sticky top-0 z-50 w-full bg-[#0b121f]">
         <div class="relative aspect-video w-full bg-black shadow-lg">
-            <video id="video-player" class="w-full h-full object-contain" playsinline autoplay muted></video>
-            <div id="loading-overlay" class="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300">
+            <video id="video-player" class="w-full h-full object-contain" playsinline autoplay></video>
+            <div id="loading-overlay" class="absolute inset-0 flex items-center justify-center bg-black/70 transition-opacity duration-300 hidden opacity-0">
                 <div class="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
             </div>
         </div>
 
-        <!-- 2. QUICK MUTE/UNMUTE & INFO CONTROLS -->
         <div class="flex items-center justify-between px-4 py-2 bg-[#121e31] border-b border-[#1e2d42]">
-            <div class="flex items-center space-x-2">
-                <button id="mute-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-colors">
-                    <i id="mute-icon" class="fas fa-volume-mute"></i>
-                    <span id="mute-text">Unmute Sound</span>
+            <div class="flex items-center space-x-3">
+                <button id="mute-btn" class="text-gray-300 hover:text-white text-base p-1.5 focus:outline-none transition-colors" title="Toggle Sound">
+                    <i id="mute-icon" class="fas fa-volume-high text-green-400"></i>
+                </button>
+                <button id="fullscreen-btn" class="text-gray-300 hover:text-white text-base p-1.5 focus:outline-none transition-colors" title="Fullscreen">
+                    <i class="fas fa-expand"></i>
                 </button>
             </div>
             <div class="text-right">
-                <span id="current-channel-title" class="text-xs font-medium text-blue-400 block truncate max-w-[200px]">Loading...</span>
+                <span id="current-channel-title" class="text-xs font-medium text-blue-400 block truncate max-w-[180px]">Loading...</span>
             </div>
         </div>
     </div>
 
-    <!-- 3. APP HEADER (As seen in 44376.jpg) -->
-    <div class="flex items-center justify-between px-4 py-3 mt-1">
-        <h1 class="text-xl font-bold tracking-wide text-white flex items-center space-x-1">
-            <span>FalconCast</span>
-        </h1>
-        <div class="flex items-center space-x-5 text-gray-400 text-lg">
-            <i class="far fa-bell cursor-pointer hover:text-white transition-colors"></i>
-            <i class="far fa-heart cursor-pointer hover:text-white transition-colors"></i>
-            <i class="fas fa-rotate cursor-pointer hover:text-white transition-colors" onclick="location.reload()"></i>
-            <i class="fas fa-magnifying-glass cursor-pointer hover:text-white transition-colors"></i>
-        </div>
-    </div>
-
-    <!-- 4. CATEGORY HORIZONTAL SLIDER WITH BADGES -->
-    <div class="px-4 py-2 overflow-x-auto flex space-x-4 custom-scroll">
-        <div class="flex flex-col items-center space-y-1 min-w-[60px] cursor-pointer">
-            <div class="relative w-12 h-12 rounded-full bg-[#1e2d42] border border-blue-500 flex items-center justify-center text-white">
-                <i class="fas fa-globe text-sm"></i>
-                <span class="absolute -top-1 -right-1 bg-blue-600 text-[10px] px-1 rounded-full font-bold">96</span>
-            </div>
-            <span class="text-xs text-blue-400 font-medium">All</span>
-        </div>
-        <div class="flex flex-col items-center space-y-1 min-w-[60px] cursor-pointer">
-            <div class="relative w-12 h-12 rounded-full bg-[#121e31] flex items-center justify-center text-gray-400">
-                <i class="fas fa-futbol text-sm"></i>
-                <span class="absolute -top-1 -right-1 bg-gray-600 text-[10px] px-1 rounded-full font-bold">78</span>
-            </div>
-            <span class="text-xs text-gray-400">Football</span>
-        </div>
-        <div class="flex flex-col items-center space-y-1 min-w-[60px] cursor-pointer">
-            <div class="relative w-12 h-12 rounded-full bg-[#121e31] flex items-center justify-center text-gray-400">
-                <i class="fas fa-cricket-bat-ball text-sm"></i>
-                <span class="absolute -top-1 -right-1 bg-gray-600 text-[10px] px-1 rounded-full font-bold">6</span>
-            </div>
-            <span class="text-xs text-gray-400">Cricket</span>
-        </div>
-        <div class="flex flex-col items-center space-y-1 min-w-[60px] cursor-pointer">
-            <div class="relative w-12 h-12 rounded-full bg-[#121e31] flex items-center justify-center text-gray-400">
-                <span class="font-black text-xs">W</span>
-            </div>
-            <span class="text-xs text-gray-400">WWE</span>
-        </div>
-    </div>
-
-    <!-- 5. FILTER PILLS (All, Live, Today, Tomorrow) -->
-    <div class="px-4 py-3 flex space-x-2 overflow-x-auto custom-scroll">
-        <button class="active-pill border border-gray-700 text-white px-4 py-1 rounded-md text-xs font-medium">All (96)</button>
-        <button class="bg-[#121e31] border border-gray-800 text-gray-400 px-4 py-1 rounded-md text-xs font-medium flex items-center space-x-1">
-            <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span>
-            <span>Live (0)</span>
-        </button>
-        <button class="bg-[#121e31] border border-gray-800 text-gray-400 px-4 py-1 rounded-md text-xs font-medium">Today (4)</button>
-        <button class="bg-[#121e31] border border-gray-800 text-gray-400 px-4 py-1 rounded-md text-xs font-medium">Tomorrow</button>
-    </div>
-
-    <!-- 6. DYNAMIC MATCH CARDS DESIGN (As seen in 44376.jpg) -->
-    <div class="px-4 space-y-3 mt-2">
-        
-        <!-- Match Card 1: FIFA World Cup Opening Ceremonies -->
-        <div class="card-bg rounded-lg overflow-hidden relative shadow-md">
-            <div class="absolute top-2 left-2 bg-black/60 text-[10px] text-gray-300 px-2 py-0.5 rounded font-medium">Starts in 14 hours</div>
-            <img src="https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" class="w-full h-28 object-cover opacity-40 bg-gradient-to-r from-blue-900 to-black" alt="Banner">
-            <div class="absolute inset-0 p-3 flex flex-col justify-between bg-gradient-to-t from-[#121e31] via-transparent to-transparent">
-                <div></div>
-                <div>
-                    <h3 class="text-sm font-bold text-white line-clamp-1">THE WORLD'S LARGEST FOOTBALL TOURNAMENT</h3>
-                    <div class="flex items-center justify-between text-[11px] text-gray-400 mt-1">
-                        <span class="flex items-center text-blue-400 font-semibold"><i class="fas fa-trophy mr-1 text-amber-500"></i> 2026 - Opening Ceremonies</span>
-                        <span>11:00 PM | 11/06/2026</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Match Card 2: International Cricket -->
-        <div class="card-bg rounded-lg p-3 shadow-md flex flex-col justify-between">
-            <div class="flex justify-between items-center text-[11px] text-gray-400 mb-2">
-                <span class="font-semibold text-blue-400 flex items-center"><i class="fas fa-circle text-[6px] mr-1 text-green-500"></i> Cricket || One Day International</span>
-                <span>11:00 AM | 11/06/2026</span>
-            </div>
-            <div class="flex items-center justify-between my-2 px-4">
-                <div class="flex flex-col items-center space-y-1">
-                    <div class="w-10 h-10 rounded-full bg-red-600 border-2 border-green-600 flex items-center justify-center font-bold text-xs shadow-inner">BD</div>
-                    <span class="text-xs font-semibold text-gray-200">Bangladesh</span>
-                </div>
-                <span class="text-xs font-black text-gray-500 tracking-widest">VS</span>
-                <div class="flex flex-col items-center space-y-1">
-                    <div class="w-10 h-10 rounded-full bg-blue-800 border-2 border-white flex items-center justify-center font-bold text-xs shadow-inner">AUS</div>
-                    <span class="text-xs font-semibold text-gray-200">Australia</span>
-                </div>
-            </div>
-            <div class="text-center text-[10px] text-gray-500 mt-1">Starts in 2 hours</div>
-        </div>
-
-    </div>
-
-    <!-- 7. CHANNELS LIST GRID SECTION -->
-    <div class="px-4 mt-5">
+    <div class="px-4 mt-4 flex-grow">
         <h2 class="text-sm font-bold text-gray-400 mb-3 tracking-wider uppercase flex items-center justify-between">
             <span>Available Channels</span>
             <span class="text-[11px] text-blue-500 lowercase font-normal">Click to play</span>
         </h2>
         <div id="channels-grid" class="grid grid-cols-2 gap-2">
-            <!-- Injecting Channels via JavaScript smoothly -->
-        </div>
+            </div>
     </div>
 
-    <!-- 8. BOTTOM NAVIGATION BAR (As seen in 44376.jpg) -->
     <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#0b121f]/95 backdrop-blur-md border-t border-[#1e2d42] flex justify-around items-center py-2.5 z-50">
         <div class="flex flex-col items-center text-gray-500 cursor-pointer hover:text-gray-300">
             <i class="fas fa-gear text-lg"></i>
@@ -186,11 +80,20 @@
     </div>
 
     <script>
-        // Channel Playback Data Object structure parsed completely from the provided M3U dataset
+        // Full Dataset M3U Playlist - Bangladesh Channels on Absolute Top (T Sports -> BTV -> Somoy)
         const channelPlaylist = [
-            { name: "FIFA Plus English 🏆 (Server 1)", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "FIFA Plus B 🏆 BD Bangladesh", url: "https://37b4c228.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/6f5437c5-e015-4754-8476-c8c6d27d3a55/1.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "FIFA Plus 🇦🇷 Argentina BD Bangladesh", url: "https://6c849fb3.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/TEctbXhfRklGQVBsdXNTcGFuaXNoLTFfSExT/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            // Bangladeshi channels (T Sports on top, then BTV, then Somoy)
+            { name: "T Sports HD 🇧🇩 Bangladesh", url: "http://27.124.71.27/T-Sports/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "T Sports B 🇧🇩 Bangladesh", url: "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1779283784&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3b4c5a2cfa872fa7f91ffbfb4aa0f658", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "BTV 🇧🇩 Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "Somoy TV 🇧🇩 Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            
+            // Former first channel moved right under Bangladesh block
+            { name: "FIFA Plus English 🏆", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0ZJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            
+            // Other International channels
+            { name: "FIFA Plus B 🏆", url: "https://37b4c228.wurl.com/manifest/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/6f5437c5-e015-4754-8476-c8c6d27d3a55/1.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "FIFA Plus 🇦🇷 Argentina", url: "https://6c849fb3.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/TEctbXhfRklGQVBsdXNTcGFuaXNoLTFfSExT/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "FIFA Plus 🇫🇷 France", url: "https://37b4c228.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWZyX0ZJRkFQbHVzRnJlbmNoX0hMUw/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "FIFA Plus 🇩🇪 Germany", url: "https://4397879b.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWRlX0ZJRkFQbHVzR2VybWFuX0hMUw/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "FIFA Plus 🇮🇪 Itali", url: "https://5d95f7d7.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWl0X0ZJRkFQbHVzSXRhbGlhbl9ITFM/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
@@ -198,20 +101,47 @@
             { name: "FIFA Plus 🇪🇸 Spain", url: "https://d63fabad.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWVzX0ZJRkFQbHVzU3BhbmlzaF9ITFM/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "FIFA Plus 🇺🇸 USA", url: "https://d2w9q46ikgrcwx.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-of5cbk3sav3w5/v1/sysdata_s_p_a_fifa_7/samsungheadend_us/latest/main/hls/playlist.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "Fox Sports 2 - (FIFA)", url: "https://tvsen7.aynaott.com/foxsports2/index.m3u8?e=1779283790&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=cbb7f40b4af7be51a91e0629a5ac7238", logo: "https://imglink.cc/cdn/o5BoWU_BEz.png" },
-            { name: "T Sports HD 🇧🇩 Bangladesh", url: "http://27.124.71.27/T-Sports/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "T Sports B 🇧🇩 Bangladesh", url: "https://tvsen7.aynaott.com/tsports-hd/index.m3u8?e=1779283784&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=3b4c5a2cfa872fa7f91ffbfb4aa0f658", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "BTV 🇧🇩 Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1709/output/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "Somoy TV 🇧🇩 Bangladesh", url: "https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "Tyc Sports 🇦🇷 Argentina", url: "https://amg26268-amg26268c14-freelivesports-emea-10267.playouts.now.amagi.tv/ts-us-e2-n2/playlist/amg26268-sportsstudio-tycsports-freelivesportsemea/playlist.m3u8", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
-            { name: "Tyc Sports B 🇦🇷", url: "http://cdn.tv-rds.workers.dev/TYCSPT.m3u8", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
+            { name: "Tyc Sports B 🇦🇷 Argentina", url: "http://cdn.tv-rds.workers.dev/TYCSPT.m3u8", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
+            { name: "Tyc Sports C 🇦🇷 Argentina", url: "http://daleplaytv.vip:80//live/4nd9wbtu/c5hrn9eFhfsa/81252.ts", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
+            { name: "Tyc Sports D 🇦🇷 Argentina", url: "http://tv.zeuspro.xyz:8080/peterordonez/OKEtJocXkL/157580", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
+            { name: "Tyc Sports E 🇦🇷 Argentina", url: "http://redworld.pro:8880/56974081590w/A8TsKszFcs6n/327918", logo: "https://imglink.cc/cdn/1oSRQnyUqK.jpg" },
             { name: "DSports 🇦🇷", url: "http://cablemaxsigloxxi.com:8000/play/a0l4/index.m3u8", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
+            { name: "DSports B 🇦🇷", url: "https://cors-proxy.cooks.fyi/http://147.135.114.221:8001/play/a00m/index.m3u8", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
+            { name: "DSports C 🇦🇷", url: "http://147.135.114.221:8001/play/a00m/index.m3u8", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
+            { name: "DSports D 🇦🇷", url: "http://rlatinop.com:8880/Jhoselin102030xd1011/SQDyyTdV2z6x/526169", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
+            { name: "DSports E 🇦🇷", url: "http://redworld.pro:8880/56974081590w/A8TsKszFcs6n/428666", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
+            { name: "Vivo TV", url: "http://rlatinop.com:8880/Jhoselin102030xd1011/SQDyyTdV2z6x/527938", logo: "https://imglink.cc/cdn/eYP_0o2cnt.jpg" },
             { name: "Caze TV 🇧🇷 Brazil", url: "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
-            { name: "Caze TV B 🇧🇷", url: "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/Caze_TV.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "Caze TV B - 🇧🇷 Brazil", url: "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/Caze_TV.m3u8", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "Caze TV C - 🇧🇷 Brazil", url: "https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/3ynrpdanq2/out/v1/81fd4c26584044d2b1a1cc5b32fa9af0/cenc.mpd?amznDtid=AOAGZA014O5RE&encoding=segmentBase", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "Caze TV D - 🇧🇷 Brazil", url: "https://otte.live.fly.ww.aiv-cdn.net/gru-nitro/live/clients/dash/enc/epg9sw6owc/out/v1/e50aecefcb294fae85d6b343e0a6f1cc/cenc.mpd?amznDtid=AOAGZA014O5RE&encoding=segmentBase", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
+            { name: "El Heddaf Tv 🇩🇿 Algeria", url: "https://live.elheddaftv.com:8081/elheddaf/index.mpd", logo: "https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png" },
             { name: "DAZN 1 HD", url: "http://znty.dyndns.org:5010/hls/eleven1.m3u8", logo: "https://imglink.cc/cdn/Kvj2fsr4S8.png" },
+            { name: "DAZN 2 HD", url: "http://znty.dyndns.org:5010/hls/eleven2.m3u8", logo: "https://imglink.cc/cdn/Kvj2fsr4S8.png" },
+            { name: "DAZN 3 HD", url: "http://znty.dyndns.org:5010/hls/eleven3.m3u8", logo: "https://imglink.cc/cdn/Kvj2fsr4S8.png" },
+            { name: "DAZN 4 HD", url: "http://znty.dyndns.org:5010/hls/eleven4.m3u8", logo: "https://imglink.cc/cdn/Kvj2fsr4S8.png" },
+            { name: "DAZN 5 HD", url: "http://znty.dyndns.org:5010/hls/eleven5.m3u8", logo: "https://imglink.cc/cdn/Kvj2fsr4S8.png" },
+            { name: "Bein Sports - 🇫🇷 France", url: "http://145.239.5.177/559/mpegts", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 🇫🇷 France", url: "http://145.239.5.177:80/559/index.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 1 🇷🇸 Serbia", url: "http://ua.online24.pm/play/1101/350B326FB34F4B8/video.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 2 🇷🇸 Serbia", url: "http://ua.online24.pm/play/1102/350B326FB34F4B8/video.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "TUDN 🇲🇽 Mexico", url: "http://177.10.184.60:8002/play/a013/index.m3u8", logo: "https://imglink.cc/cdn/Tf3GP8uGY_.jpg" },
+            { name: "TUDN B 1080 🇲🇽 Mexico", url: "https://streaming.alwaysdata.net/tudn.php", logo: "https://imglink.cc/cdn/Tf3GP8uGY_.jpg" },
             { name: "Bein Sports 1", url: "http://27.124.71.27/beIN_Sports_1/index.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 2", url: "http://27.124.71.27/beIN_Sports_2/index.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 3", url: "http://27.124.71.27/beIN_Sports_3/index.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 4", url: "https://bein-esp-xumo.amagi.tv/playlistR1080p.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "beIN Sports Xtra", url: "https://bein-esp-xumo.amagi.tv/playlistR720P.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 1 (Server 2)", url: "https://andro.226503.xyz/checklist/androstreamlivebs1.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 2 (Server 2)", url: "https://andro.226503.xyz/checklist/androstreamlivebs2.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 3 (Server 2)", url: "https://andro.226503.xyz/checklist/androstreamlivebs3.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
+            { name: "Bein Sports 4 (Server 2)", url: "https://andro.226503.xyz/checklist/androstreamlivebs4.m3u8", logo: "https://imglink.cc/cdn/kIiut6WBq0.jpg" },
             { name: "Cricbuzz HD", url: "http://4kgood.org:80/live/4o48up5evz/r4fiast66u/1163988.ts", logo: "https://imglink.cc/cdn/GGm9H9tLHP.png" },
             { name: "Willow HD TV", url: "https://tvsen5.aynaott.com/willowhd/index.m3u8?e=1779283803&u=78be6644-0a65-48ec-81a4-089ac65a2619&token=2fe7bf4f892cf09f80087b8146545bad", logo: "https://imglink.cc/cdn/GGm9H9tLHP.png" },
-            { name: "Star Sports 1", url: "https://tvsen7.aynaott.com/sspts1/index.m3u8", logo: "https://imglink.cc/cdn/va7WOdXDQC.jpg" }
+            { name: "Euro TV", url: "https://stream.ottplus.bd/live/euro_sports_hd_abr/live/euro_sports_hd/chunks.m3u8", logo: "https://imglink.cc/cdn/SZphbKsSMx.png" },
+            { name: "Star Sports 1", url: "https://tvsen7.aynaott.com/sspts1/tracks-v1a1/mono.ts.m3u8", logo: "https://imglink.cc/cdn/va7WOdXDQC.jpg" },
+            { name: "Star Sports 1 B", url: "https://tvsen7.aynaott.com/sspts1/index.m3u8", logo: "https://imglink.cc/cdn/va7WOdXDQC.jpg" }
         ];
 
         const video = document.getElementById('video-player');
@@ -219,17 +149,21 @@
         const currentChannelTitle = document.getElementById('current-channel-title');
         const muteBtn = document.getElementById('mute-btn');
         const muteIcon = document.getElementById('mute-icon');
-        const muteText = document.getElementById('mute-text');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
         const channelsGrid = document.getElementById('channels-grid');
         
         let hls = null;
+        let loadingTimeout = null;
+        let isInitialLoad = true; // Tracks first auto-play to handle browser policies cleanly
 
-        // Initialize App & Render Channels Grid Elements
         function initApp() {
             channelPlaylist.forEach((channel, index) => {
                 const gridItem = document.createElement('div');
                 gridItem.className = 'card-bg p-2.5 rounded-lg flex items-center space-x-2.5 cursor-pointer hover:border-blue-500/50 transition-all active:scale-95';
-                gridItem.onclick = () => playChannel(channel.url, channel.name);
+                gridItem.onclick = () => {
+                    isInitialLoad = false; // User interacted, bypass initial load restrictions
+                    playChannel(channel.url, channel.name);
+                };
                 
                 gridItem.innerHTML = `
                     <img src="${channel.logo}" class="w-7 h-7 rounded object-contain bg-black/30 flex-shrink-0" onerror="this.src='https://i.ibb.co.com/vnbkF0r/fifa-world-cup-2026-logo-png-seeklogo-665644.png'">
@@ -241,28 +175,63 @@
                 channelsGrid.appendChild(gridItem);
             });
 
-            // Fast Autoplay Trigger on Load (Plays the absolute first stream automatically)
             if(channelPlaylist.length > 0) {
+                // Instantly play index 0 (which is now T Sports HD)
                 playChannel(channelPlaylist[0].url, channelPlaylist[0].name);
             }
         }
 
-        // Optimized Playback Engine for HLS Streams
+        // Ultra Fast Playback & Cache Flushing Engine
         function playChannel(url, name) {
-            loadingOverlay.style.opacity = '1';
-            loadingOverlay.classList.remove('hidden');
+            clearTimeout(loadingTimeout);
+            loadingOverlay.style.opacity = '0';
+            loadingOverlay.classList.add('hidden');
+            
+            // Smart Delay: Don't show spinner if stream starts within 350ms
+            loadingTimeout = setTimeout(() => {
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.style.opacity = '1';
+            }, 350);
+
             currentChannelTitle.textContent = name;
+
+            // CRITICAL: Flush video memory entirely to avoid stuck streams
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
 
             if (Hls.isSupported()) {
                 if (hls) hls.destroy();
+                
+                // Advanced Performance Config for Live Media
                 hls = new Hls({
-                    maxLiveSyncPlaybackRate: 1.5,
-                    enableWorker: true
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    maxBufferLength: 10,          // Balanced buffer size for zero stutter
+                    maxMaxBufferLength: 15,
+                    liveSyncDuration: 6,
+                    maxStarvationDelay: 2,
+                    progressive: true,
+                    abrEwmaDefaultEstimate: 5000000 // Force fast level selection
                 });
+                
                 hls.loadSource(url);
                 hls.attachMedia(video);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(err => console.log("Autoplay context initiated:", err));
+                    if (isInitialLoad) {
+                        // First load autoplay handler to bypass rigid browser blocks
+                        video.muted = false;
+                        updateMuteIcon();
+                        video.play().catch(() => {
+                            video.muted = true;
+                            updateMuteIcon();
+                            video.play();
+                        });
+                    } else {
+                        video.muted = false;
+                        updateMuteIcon();
+                        video.play().catch(err => console.log("Playback Context:", err));
+                    }
                 });
                 hls.on(Hls.Events.ERROR, function (event, data) {
                     if (data.fatal) {
@@ -276,7 +245,13 @@
             } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                 video.src = url;
                 video.addEventListener('loadedmetadata', () => {
-                    video.play().catch(err => console.log("Autoplay context native:", err));
+                    video.play().catch(() => {
+                        if(isInitialLoad) {
+                            video.muted = true;
+                            updateMuteIcon();
+                            video.play();
+                        }
+                    });
                 });
             } else {
                 initFallbackPlayer(url);
@@ -285,34 +260,58 @@
 
         function initFallbackPlayer(url) {
             video.src = url;
-            video.play().catch(err => console.log("Fallback execution error:", err));
+            video.play().catch(err => console.log("Fallback Context:", err));
         }
 
-        // Loading Indicators Event Binds
         video.addEventListener('playing', () => {
+            clearTimeout(loadingTimeout); 
             loadingOverlay.style.opacity = '0';
-            setTimeout(() => loadingOverlay.classList.add('hidden'), 300);
+            setTimeout(() => loadingOverlay.classList.add('hidden'), 150);
         });
 
         video.addEventListener('waiting', () => {
-            loadingOverlay.classList.remove('hidden');
-            loadingOverlay.style.opacity = '1';
+            // Filter short micro-buffering. Only show spinner if stuck for more than 1.2s
+            clearTimeout(loadingTimeout);
+            loadingTimeout = setTimeout(() => {
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.style.opacity = '1';
+            }, 1200);
         });
 
-        // Fast Audio Toggle Controller (Solves Autoplay restrictions gracefully)
-        muteBtn.addEventListener('click', () => {
+        // Toggle Icon State Sync Engine
+        function updateMuteIcon() {
             if (video.muted) {
-                video.muted = false;
-                muteIcon.className = "fas fa-volume-high";
-                muteText.textContent = "Mute Sound";
-                muteBtn.classList.remove('bg-blue-600');
-                muteBtn.classList.add('bg-red-600');
+                muteIcon.className = "fas fa-volume-xmark text-red-500";
             } else {
-                video.muted = true;
-                muteIcon.className = "fas fa-volume-mute";
-                muteText.textContent = "Unmute Sound";
-                muteBtn.classList.remove('bg-red-600');
-                muteBtn.classList.add('bg-blue-600');
+                muteIcon.className = "fas fa-volume-high text-green-400";
+            }
+        }
+
+        // Clean Icon-Only Sound Controller
+        muteBtn.addEventListener('click', () => {
+            isInitialLoad = false;
+            video.muted = !video.muted;
+            updateMuteIcon();
+        });
+
+        // Fullscreen Toggle Controller
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitEnterFullscreen) { 
+                    video.webkitEnterFullscreen();
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
             }
         });
 
